@@ -1,0 +1,42 @@
+{
+  "name": "@tinijs/core",
+  "version": "0.0.1",
+  "description": "The core of the TiniJS framework.",
+  "author": "Lam Nhan",
+  "homepage": "https://tinijs.lamnhan.com",
+  "license": "MIT",
+  "main": "src/public-api.js",
+  "types": "src/public-api.d.ts",
+  "files": [
+    "src",
+    "!**/*.ts",
+    "**/*.d.ts"
+  ],
+  "scripts": {
+    "compile": "tsc",
+    "build": "npm run compile",
+    "lint": "gts lint",
+    "fix": "gts fix"
+  },
+  "keywords": [
+    "Javascript",
+    "Framework",
+    "Angular",
+    "Vue",
+    "React",
+    "NuxtJS",
+    "NextJS"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tinijs/core.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tinijs/core/issues"
+  },
+  "devDependencies": {
+    "@types/node": "^16.0.0",
+    "gts": "^4.0.0",
+    "typescript": "~4.7.0"
+  }
+}
