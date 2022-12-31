@@ -1,6 +1,6 @@
-import {customElement} from 'lit/decorators.js';
+import {customElement, state, query} from 'lit/decorators.js';
 
-import {ComponentConstruct, TiniComponentInstance} from './types';
+import {ComponentConstruct, TiniComponentChild} from './types';
 import {GLOBAL, APP_ROOT} from './consts';
 import {varName, depRegisterName, getAppInstance} from './methods';
 
@@ -20,6 +20,10 @@ export function Layout(tagName: string) {
   return Component(tagName);
 }
 
+export function Ref(selector?: string, cache?: boolean) {
+  return !selector ? state() : query(selector, cache);
+}
+
 export function UseApp() {
   return function (target: Object, propertyKey: string) {
     Reflect.defineProperty(target, propertyKey, {
@@ -37,7 +41,7 @@ export function UseConfigs() {
 }
 
 export function UseService(className?: string) {
-  return function (target: TiniComponentInstance, propertyKey: string) {
+  return function (target: TiniComponentChild, propertyKey: string) {
     const instanceName = !className ? propertyKey : varName(className);
     const registerName = depRegisterName(instanceName);
     target.$_resolveDependencies ||= [];

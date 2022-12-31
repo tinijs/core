@@ -1,14 +1,13 @@
 import {LitElement, html, css} from 'lit';
-import {state, property} from 'lit/decorators.js';
+import {property} from 'lit/decorators.js';
 
 import {TiniComponentConstructor, ConstructorArgs} from './types';
 
 export {html, css};
-export {state as State};
-export {property as Property};
+export {property as Input};
 
 const TiniComponentMixin = (superClass: TiniComponentConstructor) => {
-  class MixinClass extends superClass {
+  class TiniComponentChild extends superClass {
     constructor(...args: ConstructorArgs) {
       super(...args);
     }
@@ -30,10 +29,11 @@ const TiniComponentMixin = (superClass: TiniComponentConstructor) => {
       }
       if (this.onDestroy) await this.onDestroy();
       if (this.onInit) await this.onInit();
-      super.scheduleUpdate();
+      await super.scheduleUpdate();
+      if (this.onReady) setTimeout(() => (this.onReady as any)());
     }
   }
-  return MixinClass as TiniComponentConstructor;
+  return TiniComponentChild as TiniComponentConstructor;
 };
 
 export const TiniComponent = TiniComponentMixin(
