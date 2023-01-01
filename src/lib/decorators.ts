@@ -1,4 +1,4 @@
-import {customElement, state, query} from 'lit/decorators.js';
+import {customElement} from 'lit/decorators.js';
 
 import {ComponentConstruct, TiniComponentChild} from './types';
 import {GLOBAL, APP_ROOT} from './consts';
@@ -18,10 +18,6 @@ export function Page(tagName: string) {
 
 export function Layout(tagName: string) {
   return Component(tagName);
-}
-
-export function Ref(selector?: string, cache?: boolean) {
-  return !selector ? state() : query(selector, cache);
 }
 
 export function UseApp() {
@@ -44,8 +40,8 @@ export function UseService(className?: string) {
   return function (target: TiniComponentChild, propertyKey: string) {
     const instanceName = !className ? propertyKey : varName(className);
     const registerName = depRegisterName(instanceName);
-    target.$_resolveDependencies ||= [];
-    target.$_resolveDependencies.push(async () => {
+    target.$_pendingDependencies ||= [];
+    target.$_pendingDependencies.push(async () => {
       const singleton = await GLOBAL[registerName]();
       Reflect.defineProperty(target, propertyKey, {value: singleton});
       return singleton;

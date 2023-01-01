@@ -9,6 +9,10 @@
   },
   "include": [
     "src/**/*.ts",
+    "angular/**/*.ts",
+    "vue/**/*.ts",
+    "react/**/*.ts",
+    "svelte/**/*.ts",
     "test/**/*.ts"
   ]
 }

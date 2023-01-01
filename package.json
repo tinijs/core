@@ -9,6 +9,10 @@
   "types": "src/public-api.d.ts",
   "files": [
     "src",
+    "angular",
+    "vue",
+    "react",
+    "svelte",
     "!**/*.ts",
     "**/*.d.ts"
   ],
@@ -21,11 +25,16 @@
   "keywords": [
     "Javascript",
     "Framework",
+    "Web Component",
+    "Lit",
     "Angular",
     "Vue",
     "React",
+    "Svelte",
+    "ViteJS",
     "NuxtJS",
-    "NextJS"
+    "NextJS",
+    "SvelteKit"
   ],
   "repository": {
     "type": "git",

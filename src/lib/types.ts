@@ -15,13 +15,15 @@ export type TiniComponentInstance = Omit<TiniComponentChild, 'constructor'>;
 export type TiniComponentChild = TiniComponentInterface & LitElementInterface;
 
 export interface TiniComponentInterface {
-  constructor: () => void;
-  $_resolveDependencies?: Array<() => Promise<unknown>>;
+  $_pendingDependencies?: Array<() => Promise<unknown>>;
   $configs?: Record<string, unknown>;
   $router?: any;
   $store?: any;
+  constructor: () => void;
   onCreate?(): void | Promise<void>;
   onInit?(): void | Promise<void>;
+  onChanges?(): void | Promise<void>;
+  onRender?(): void | Promise<void>;
   onReady?(): void | Promise<void>;
   onDestroy?(): void | Promise<void>;
 }
