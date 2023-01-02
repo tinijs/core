@@ -1,47 +1,28 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {GLOBAL, APP_ROOT, NO_APP_ERROR} from './consts';
-import {DependencyProvider, TiniComponentInstance} from './types';
+import {TiniApp, Global, DIRegistry} from './types';
 
 export function varName(className: string) {
   return className[0].toLowerCase() + className.substring(1);
 }
 
-export function depRegisterName(instanceName: string) {
-  return `$_${instanceName}Register`;
+export function isClass(input: unknown) {
+  return (
+    typeof input === 'function' &&
+    /^class\s/.test(Function.prototype.toString.call(input))
+  );
+}
+
+export function getDIRegistry() {
+  return (GLOBAL.$tiniDIRegistry ||= {
+    registers: new Map<string, () => Promise<any>>(),
+    instances: new Map<string, any>(),
+    awaiters: [],
+  }) as DIRegistry;
 }
 
 export function getAppInstance(fallbackToGlobal?: boolean) {
-  const app = document.querySelector(
-    APP_ROOT
-  ) as unknown as TiniComponentInstance;
+  const app = document.querySelector(APP_ROOT);
   if (!app && !fallbackToGlobal) throw NO_APP_ERROR;
-  return app || GLOBAL;
-}
-
-export function provideServices(
-  registry: Record<string, DependencyProvider> = {}
-) {
-  Object.keys(registry).forEach(className => {
-    const {provider, deps} = registry[className];
-    const instanceName = varName(className);
-    const registerName = depRegisterName(instanceName);
-    if (GLOBAL[registerName]) return; // already registered
-    GLOBAL[registerName] = async () => {
-      if (GLOBAL[instanceName]) return; // already initialized
-      // resolve deps
-      const depInstances: Object[] = [];
-      if (deps?.length) {
-        for (let i = 0; i < deps.length; i++) {
-          const depInstanceName = varName(deps[i]);
-          if (!GLOBAL[depInstanceName]) {
-            await GLOBAL[depRegisterName(depInstanceName)]();
-          }
-          depInstances.push(GLOBAL[depInstanceName]);
-        }
-      }
-      // result
-      const m = await provider();
-      const singleton = new m[className](...depInstances);
-      return (GLOBAL[instanceName] = singleton);
-    };
-  });
+  return (app || GLOBAL) as TiniApp | Global;
 }

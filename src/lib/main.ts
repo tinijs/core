@@ -1,6 +1,5 @@
 import {LitElement, html, css} from 'lit';
 import {state, property, query, queryAll} from 'lit/decorators.js';
-
 import {TiniComponentConstructor, ConstructorArgs} from './types';
 
 export {html, css};
@@ -10,10 +9,9 @@ export {query as Query, queryAll as QueryAll};
 
 const TiniComponentMixin = (superClass: TiniComponentConstructor) => {
   class TiniComponentChild extends superClass {
-    private _dependenciesAvailable = !!this.$_pendingDependencies?.length;
+    private _dependenciesAvailable = !!this._pendingDI?.length;
     private get _dependenciesResolved() {
-      return (this.$_pendingDependencies &&
-        this.$_pendingDependencies.length === 0) as boolean;
+      return (this._pendingDI && this._pendingDI.length === 0) as boolean;
     }
     private _initialized?: boolean;
     private _ready?: boolean;
@@ -45,26 +43,27 @@ const TiniComponentMixin = (superClass: TiniComponentConstructor) => {
     }
 
     async scheduleUpdate() {
+      const digest = async () => {
+        this._pendingDI = []; // marked as resolved
+        if (this.onInit) await this.onInit();
+        this._initialized = true; // mark as initialized
+        super.scheduleUpdate();
+      };
       // C: has dependencies but all are resolved
       if (this._initialized && this._dependenciesResolved) {
         super.scheduleUpdate();
       }
       // A: has no dependencies
       else if (!this._dependenciesAvailable) {
-        this.$_pendingDependencies = []; // marked as resolved
-        if (this.onInit) await this.onInit();
-        this._initialized = true; // mark as initialized
-        super.scheduleUpdate();
+        await digest();
       }
       // B: has dependencies but none is resolved
       else {
-        const dependencies = this.$_pendingDependencies || [];
+        const dependencies = this._pendingDI || [];
         for (let i = 0; i < dependencies.length; i++) {
-          await dependencies.splice(i, 1)[0]();
+          await dependencies[i]();
         }
-        if (this.onInit) await this.onInit();
-        this._initialized = true; // mark as initialized
-        super.scheduleUpdate();
+        await digest();
       }
     }
   }

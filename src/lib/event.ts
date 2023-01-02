@@ -24,16 +24,17 @@ export class EventEmitter<Payload> {
 
 export function Output() {
   return function (
-    target: TiniComponentChild,
+    _: TiniComponentChild,
     propertyKey: string,
     descriptor?: PropertyDescriptor
   ) {
-    descriptor = descriptor || {};
+    descriptor ||= {};
     descriptor.enumerable = false;
     descriptor.configurable = false;
     descriptor.get = function (this: TiniComponentInstance) {
       return new EventEmitter<unknown>(this, propertyKey);
     };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return descriptor as any;
   };
 }

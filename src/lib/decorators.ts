@@ -1,11 +1,73 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {customElement} from 'lit/decorators.js';
+import {getDIRegistry} from './methods';
+import {
+  Constructor,
+  ComponentConstruct,
+  TiniComponentChild,
+  DependencyProviders,
+  DependencyDef,
+  DependencyProvider,
+  TiniComponentInstance,
+  GlobalInstance,
+} from './types';
+import {APP_ROOT, NO_REGISTER_ERROR} from './consts';
+import {isClass, getAppInstance} from './methods';
 
-import {ComponentConstruct, TiniComponentChild} from './types';
-import {GLOBAL, APP_ROOT} from './consts';
-import {varName, depRegisterName, getAppInstance} from './methods';
-
-export function App() {
-  return Component(APP_ROOT);
+export function App(providers: DependencyProviders) {
+  return function (target: any) {
+    const dependencyRegistry = getDIRegistry();
+    // add the registers
+    const providerIds = Object.keys(providers);
+    for (let i = 0; i < providerIds.length; i++) {
+      const id = providerIds[i];
+      const value = providers[id] as any;
+      // extract the provider and deps
+      const {provider, deps} = !value?.provider
+        ? {provider: value as DependencyProvider, deps: []}
+        : (value as DependencyDef);
+      // the register
+      let theRegister = dependencyRegistry.registers.get(id);
+      if (theRegister) return; // already registered
+      theRegister = async () => {
+        let result = dependencyRegistry.instances.get(id);
+        // already initialized
+        if (result) return;
+        // resolve deps
+        const depInstances: Object[] = [];
+        if (deps?.length) {
+          for (let i = 0; i < deps.length; i++) {
+            const depId = deps[i];
+            let depInstance = dependencyRegistry.instances.get(depId);
+            if (!depInstance) {
+              const theDepRegister = dependencyRegistry.registers.get(depId);
+              if (!theDepRegister) throw NO_REGISTER_ERROR(depId);
+              depInstance = await theDepRegister();
+            }
+            depInstances.push(depInstance);
+          }
+        }
+        // result
+        console.log(id, provider);
+        console.log(depInstances);
+        const m = await provider();
+        const dependency = !m.default ? m : m.default;
+        result = !isClass(dependency)
+          ? dependency
+          : new dependency(...depInstances);
+        return dependencyRegistry.instances.set(id, result).get(id);
+      };
+      dependencyRegistry.registers.set(id, theRegister).get(id);
+    }
+    // digest the await queue
+    if (dependencyRegistry.awaiters?.length) {
+      for (let i = 0; i < dependencyRegistry.awaiters.length; i++) {
+        dependencyRegistry.awaiters[i]();
+      }
+    }
+    // forward the app root
+    return customElement(APP_ROOT)(target);
+  };
 }
 
 export function Component(tagName: string) {
@@ -24,6 +86,8 @@ export function UseApp() {
   return function (target: Object, propertyKey: string) {
     Reflect.defineProperty(target, propertyKey, {
       get: () => getAppInstance(),
+      enumerable: false,
+      configurable: false,
     });
   };
 }
@@ -31,20 +95,54 @@ export function UseApp() {
 export function UseConfigs() {
   return function (target: Object, propertyKey: string) {
     Reflect.defineProperty(target, propertyKey, {
-      get: () => getAppInstance(true).$configs || {},
+      get: () => {
+        const appOrGlobal = getAppInstance(true);
+        return (
+          (appOrGlobal as TiniComponentInstance).$configs ||
+          (appOrGlobal as GlobalInstance).$tiniConfigs ||
+          {}
+        );
+      },
+      enumerable: false,
+      configurable: false,
     });
   };
 }
 
-export function UseService(className?: string) {
+export function Inject(id?: string) {
   return function (target: TiniComponentChild, propertyKey: string) {
-    const instanceName = !className ? propertyKey : varName(className);
-    const registerName = depRegisterName(instanceName);
-    target.$_pendingDependencies ||= [];
-    target.$_pendingDependencies.push(async () => {
-      const singleton = await GLOBAL[registerName]();
-      Reflect.defineProperty(target, propertyKey, {value: singleton});
-      return singleton;
+    const depId = (id || propertyKey) as string;
+    const dependencyRegistry = getDIRegistry();
+    // the pending
+    const pending = async () => {
+      let result = dependencyRegistry.instances.get(depId);
+      if (!result) {
+        const register = dependencyRegistry.registers.get(depId);
+        if (!register) throw NO_REGISTER_ERROR(depId);
+        result = dependencyRegistry.instances
+          .set(depId, await register())
+          .get(depId);
+      }
+      return result;
+    };
+    // queue the dependencies
+    const theRegister = dependencyRegistry.registers.get(depId);
+    target._pendingDI ||= [];
+    if (!theRegister) {
+      let resolveSchedule = () => {};
+      const scheduledPending = new Promise(
+        resolve => (resolveSchedule = resolve as any)
+      );
+      dependencyRegistry.awaiters.push(() => resolveSchedule());
+      target._pendingDI.push(() => scheduledPending.then(() => pending()));
+    } else {
+      target._pendingDI.push(pending);
+    }
+    // result
+    Reflect.defineProperty(target, propertyKey, {
+      get: () => dependencyRegistry.instances.get(depId),
+      enumerable: false,
+      configurable: false,
     });
   };
 }
