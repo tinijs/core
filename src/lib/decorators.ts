@@ -1,18 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {customElement} from 'lit/decorators.js';
-import {getDIRegistry} from './methods';
+import {getDIRegistry, getConfigs} from './methods';
 import {
-  Constructor,
   ComponentConstruct,
   TiniComponentChild,
   DependencyProviders,
   DependencyDef,
   DependencyProvider,
-  TiniComponentInstance,
-  GlobalInstance,
 } from './types';
 import {APP_ROOT, NO_REGISTER_ERROR} from './consts';
 import {isClass, getAppInstance} from './methods';
+
+import ___checkForDIMissingDependencies from '../dev/di-checker';
 
 export function App(providers: DependencyProviders) {
   return function (target: any) {
@@ -36,8 +35,8 @@ export function App(providers: DependencyProviders) {
         // resolve deps
         const depInstances: Object[] = [];
         if (deps?.length) {
-          for (let i = 0; i < deps.length; i++) {
-            const depId = deps[i];
+          for (let j = 0; j < deps.length; j++) {
+            const depId = deps[j];
             let depInstance = dependencyRegistry.instances.get(depId);
             if (!depInstance) {
               const theDepRegister = dependencyRegistry.registers.get(depId);
@@ -48,13 +47,14 @@ export function App(providers: DependencyProviders) {
           }
         }
         // result
-        console.log(id, provider);
-        console.log(depInstances);
         const m = await provider();
         const dependency = !m.default ? m : m.default;
         result = !isClass(dependency)
           ? dependency
           : new dependency(...depInstances);
+        // <TINIJSBUILD:DEVELOPMENT>
+        ___checkForDIMissingDependencies(id, dependency, result);
+        // </TINIJSBUILD>
         return dependencyRegistry.instances.set(id, result).get(id);
       };
       dependencyRegistry.registers.set(id, theRegister).get(id);
@@ -95,14 +95,7 @@ export function UseApp() {
 export function UseConfigs() {
   return function (target: Object, propertyKey: string) {
     Reflect.defineProperty(target, propertyKey, {
-      get: () => {
-        const appOrGlobal = getAppInstance(true);
-        return (
-          (appOrGlobal as TiniComponentInstance).$configs ||
-          (appOrGlobal as GlobalInstance).$tiniConfigs ||
-          {}
-        );
-      },
+      get: () => getConfigs(),
       enumerable: false,
       configurable: false,
     });

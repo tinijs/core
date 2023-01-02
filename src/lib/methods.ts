@@ -26,3 +26,12 @@ export function getAppInstance(fallbackToGlobal?: boolean) {
   if (!app && !fallbackToGlobal) throw NO_APP_ERROR;
   return (app || GLOBAL) as TiniApp | Global;
 }
+
+export function getConfigs(): null | Record<string, unknown> {
+  const appOrGlobal = getAppInstance(true);
+  return (
+    (appOrGlobal as TiniApp).$configs ||
+    (appOrGlobal as Global).$tiniConfigs ||
+    null
+  );
+}
