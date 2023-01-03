@@ -11,6 +11,8 @@ import {
 import {APP_ROOT, NO_REGISTER_ERROR} from './consts';
 import {isClass, getAppInstance} from './methods';
 
+import ___checkForDIMissingDependencies from '../dev/di-checker';
+
 export function App(providers: DependencyProviders) {
   return function (target: any) {
     const dependencyRegistry = getDIRegistry();
@@ -50,6 +52,11 @@ export function App(providers: DependencyProviders) {
         result = !isClass(dependency)
           ? dependency
           : new dependency(...depInstances);
+        // <DEVELOPMENT>
+        if (process.env.NODE_ENV === 'development') {
+          ___checkForDIMissingDependencies(id, dependency, result);
+        }
+        // </DEVELOPMENT>
         return dependencyRegistry.instances.set(id, result).get(id);
       };
       dependencyRegistry.registers.set(id, theRegister).get(id);
