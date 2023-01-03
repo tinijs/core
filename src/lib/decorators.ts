@@ -141,3 +141,7 @@ export function Inject(id?: string) {
     });
   };
 }
+
+export function Vendor(id?: string) {
+  return Inject(id);
+}
