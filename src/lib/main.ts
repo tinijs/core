@@ -73,3 +73,7 @@ const TiniComponentMixin = (superClass: TiniComponentConstructor) => {
 export const TiniComponent = TiniComponentMixin(
   LitElement as unknown as TiniComponentConstructor
 ) as TiniComponentConstructor;
+
+export function asset(path: string) {
+  return path;
+}
