@@ -43,7 +43,7 @@ export interface TiniComponentInterface {
   onCreate?(): void | Promise<void>;
   onInit?(): void | Promise<void>;
   onChanges?(): void | Promise<void>;
-  onRender?(): void | Promise<void>;
+  onRenders?(): void | Promise<void>;
   onReady?(): void | Promise<void>;
   onDestroy?(): void | Promise<void>;
 }

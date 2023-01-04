@@ -14,7 +14,6 @@ const TiniComponentMixin = (superClass: TiniComponentConstructor) => {
       return (this._pendingDI && this._pendingDI.length === 0) as boolean;
     }
     private _initialized?: boolean;
-    private _ready?: boolean;
 
     constructor(...args: ConstructorArgs) {
       super(...args);
@@ -34,12 +33,12 @@ const TiniComponentMixin = (superClass: TiniComponentConstructor) => {
       if (this.onChanges) this.onChanges();
     }
 
+    firstUpdated() {
+      if (this.onReady) this.onReady();
+    }
+
     updated() {
-      if (this.onRender) this.onRender();
-      if (!this._ready) {
-        this._ready = true;
-        if (this.onReady) this.onReady();
-      }
+      if (this.onRenders) this.onRenders();
     }
 
     async scheduleUpdate() {
