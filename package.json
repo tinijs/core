@@ -5,6 +5,9 @@
   "author": "Lam Nhan",
   "homepage": "https://tinijs.lamnhan.com",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "src/public-api.js",
   "types": "src/public-api.d.ts",
   "files": [
@@ -19,6 +22,7 @@
   "scripts": {
     "compile": "tsc",
     "build": "npm run compile",
+    "deploy": "npm run build && npm publish",
     "lint": "gts lint",
     "fix": "gts fix"
   },
@@ -49,6 +53,6 @@
   "devDependencies": {
     "@types/node": "^18.11.18",
     "gts": "^4.0.0",
-    "typescript": "~4.7.0"
+    "typescript": "~4.9.4"
   }
 }
