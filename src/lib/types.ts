@@ -1,5 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {LitElement} from 'lit';
+import {COMPONENT_TYPES} from './consts';
+
+export interface AppOptions {
+  splashscreen?: 'auto' | 'manual';
+}
+
+export type TiniComponentType = COMPONENT_TYPES;
 
 export type ComponentConstruct = (target: any) => any;
 
@@ -21,31 +28,63 @@ export interface DIRegistry {
 
 export interface GlobalInstance {
   $tiniDIRegistry?: DIRegistry;
+  $tiniAppOptions?: AppOptions;
   $tiniConfigs?: Record<string, unknown>;
   $tiniRouter?: any;
   $tiniStore?: any;
   [key: string]: unknown;
 }
 
-export type TiniApp = TiniComponentInstance;
+export type TiniApp = TiniComponentInstance & {
+  $options?: AppOptions;
+  $configs?: Record<string, unknown>;
+  $router?: any;
+  $store?: any;
+};
 export type Global = GlobalInstance;
 
 export type TiniComponentInstance = Omit<TiniComponentChild, 'constructor'>;
 
 export type TiniComponentChild = TiniComponentInterface & LitElementInterface;
 
+export type LifecycleHook = void | Promise<void>;
+
+export interface OnCreate {
+  onCreate(): LifecycleHook;
+}
+export interface OnInit {
+  onInit(): LifecycleHook;
+}
+export interface OnChanges {
+  onChanges(): LifecycleHook;
+}
+export interface OnRenders {
+  onRenders(): LifecycleHook;
+}
+export interface OnReady {
+  onReady(): LifecycleHook;
+}
+export interface OnChildrenReady {
+  onChildrenReady(): LifecycleHook;
+}
+export interface OnDestroy {
+  onDestroy(): LifecycleHook;
+}
 export interface TiniComponentInterface {
+  // meta
   _pendingDI?: Array<() => Promise<unknown>>;
-  $configs?: Record<string, unknown>;
-  $router?: any;
-  $store?: any;
+  // default
+  componentType: TiniComponentType;
   constructor: () => void;
-  onCreate?(): void | Promise<void>;
-  onInit?(): void | Promise<void>;
-  onChanges?(): void | Promise<void>;
-  onRenders?(): void | Promise<void>;
-  onReady?(): void | Promise<void>;
-  onDestroy?(): void | Promise<void>;
+  childrenFirstUpdated(): LifecycleHook;
+  // custom/alias hooks
+  onCreate?(): LifecycleHook;
+  onInit?(): LifecycleHook;
+  onChanges?(): LifecycleHook;
+  onRenders?(): LifecycleHook;
+  onReady?(): LifecycleHook;
+  onChildrenReady?(): LifecycleHook;
+  onDestroy?(): LifecycleHook;
 }
 
 export type LitElementInterface = LitElement;
@@ -55,3 +94,12 @@ export type TiniComponentConstructor = Constructor<LitElementInterface> &
 
 export type Constructor<T = {}> = new (...args: ConstructorArgs) => T;
 export type ConstructorArgs = any[];
+
+export type ObservableSubscription<Value> = (
+  newVal: Value,
+  oldVal: Value
+) => void;
+
+export type ObservableChanged<Value> = (
+  subscription: ObservableSubscription<Value>
+) => void;

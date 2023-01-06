@@ -1,5 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {GLOBAL, APP_ROOT, NO_APP_ERROR} from './consts';
+import {
+  GLOBAL,
+  APP_ROOT,
+  APP_SPLASH_SCREEN_ID,
+  APP_SPLASH_SCREEN,
+  NO_APP_ERROR,
+} from './consts';
 import {TiniApp, Global, DIRegistry} from './types';
 
 export function varName(className: string) {
@@ -34,4 +40,25 @@ export function getConfigs(): null | Record<string, unknown> {
     (appOrGlobal as Global).$tiniConfigs ||
     null
   );
+}
+
+export function getAppSplashscreen() {
+  const app = getAppInstance();
+  if (!app) return null;
+  const root = (app as TiniApp).renderRoot;
+  return (
+    root.querySelector(APP_SPLASH_SCREEN) ||
+    root.querySelector(`#${APP_SPLASH_SCREEN_ID}`)
+  );
+}
+
+export function hideAppSplashscreen() {
+  const node = getAppSplashscreen();
+  if (!node) return;
+  if ((node as any)?.hide instanceof Function) {
+    (node as any).hide();
+  } else {
+    node.firstElementChild?.classList.add('exiting');
+    setTimeout(() => node.remove(), 500);
+  }
 }

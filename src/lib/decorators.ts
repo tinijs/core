@@ -2,19 +2,28 @@
 import {customElement} from 'lit/decorators.js';
 import {getDIRegistry, getConfigs} from './methods';
 import {
-  ComponentConstruct,
+  TiniComponentType,
   TiniComponentChild,
+  AppOptions,
   DependencyProviders,
   DependencyDef,
   DependencyProvider,
+  ObservableSubscription,
 } from './types';
-import {APP_ROOT, NO_REGISTER_ERROR} from './consts';
-import {isClass, getAppInstance} from './methods';
+import {APP_ROOT, GLOBAL, COMPONENT_TYPES, NO_REGISTER_ERROR} from './consts';
+import {isClass, getAppInstance, getAppSplashscreen} from './methods';
 
 import ___checkForDIMissingDependencies from '../dev/di-checker';
 
-export function App(providers: DependencyProviders) {
+export function App(providers: DependencyProviders, options: AppOptions = {}) {
   return function (target: any) {
+    GLOBAL.$tiniAppOptions = options; // set options
+    // create app
+    class result extends target {
+      $options = GLOBAL.$tiniAppOptions;
+      componentType = COMPONENT_TYPES.APP;
+    }
+    // load the registry
     const dependencyRegistry = getDIRegistry();
     // add the registers
     const providerIds = Object.keys(providers);
@@ -68,20 +77,25 @@ export function App(providers: DependencyProviders) {
       }
     }
     // forward the app root
-    return customElement(APP_ROOT)(target);
+    return customElement(APP_ROOT)(result as any);
   };
 }
 
-export function Component(tagName: string) {
-  return customElement(tagName) as ComponentConstruct;
+export function Component(tagName: string, type?: TiniComponentType) {
+  return function (target: any) {
+    class result extends target {
+      componentType = type || COMPONENT_TYPES.COMPONENT;
+    }
+    return customElement(tagName)(result as any);
+  };
 }
 
 export function Page(tagName: string) {
-  return Component(tagName);
+  return Component(tagName, COMPONENT_TYPES.PAGE);
 }
 
 export function Layout(tagName: string) {
-  return Component(tagName);
+  return Component(tagName, COMPONENT_TYPES.LAYOUT);
 }
 
 export function UseApp() {
@@ -98,6 +112,16 @@ export function UseConfigs() {
   return function (target: Object, propertyKey: string) {
     Reflect.defineProperty(target, propertyKey, {
       get: () => getConfigs(),
+      enumerable: false,
+      configurable: false,
+    });
+  };
+}
+
+export function UseSplashscreen() {
+  return function (target: Object, propertyKey: string) {
+    Reflect.defineProperty(target, propertyKey, {
+      get: () => getAppSplashscreen(),
       enumerable: false,
       configurable: false,
     });
@@ -144,4 +168,43 @@ export function Inject(id?: string) {
 
 export function Vendor(id?: string) {
   return Inject(id);
+}
+
+export function Observable(registerName?: string, noInitial?: boolean) {
+  return function (target: any, propertyKey: string) {
+    const valueKey = `_${propertyKey}Value`;
+    const registerKey = registerName || `${propertyKey}Changed`;
+    let onChanged = (() => {}) as ObservableSubscription<unknown>;
+    Reflect.defineProperty(target, valueKey, {
+      value: undefined,
+      writable: true,
+      enumerable: false,
+      configurable: false,
+    });
+    Reflect.defineProperty(target, registerKey, {
+      value: (cb: ObservableSubscription<unknown>) => {
+        onChanged = cb;
+        const currentVal = target[valueKey];
+        if (!noInitial && currentVal !== undefined) {
+          onChanged(currentVal, undefined);
+        }
+      },
+      enumerable: false,
+      configurable: false,
+    });
+    Reflect.defineProperty(target, propertyKey, {
+      get: () => target[valueKey],
+      set: newVal => {
+        let oldVal = target[valueKey];
+        oldVal =
+          !oldVal || typeof oldVal !== 'object'
+            ? oldVal
+            : JSON.parse(JSON.stringify(oldVal));
+        target[valueKey] = newVal;
+        onChanged(newVal, oldVal);
+      },
+      enumerable: false,
+      configurable: false,
+    });
+  };
 }
