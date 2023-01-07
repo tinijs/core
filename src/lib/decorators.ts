@@ -10,14 +10,35 @@ import {
   DependencyProvider,
   ObservableSubscription,
 } from './types';
-import {APP_ROOT, GLOBAL, COMPONENT_TYPES, NO_REGISTER_ERROR} from './consts';
-import {isClass, getAppInstance, getAppSplashscreen} from './methods';
+import {
+  APP_ROOT,
+  GLOBAL,
+  COMPONENT_TYPES,
+  LIFECYCLE_HOOKS,
+  NO_REGISTER_ERROR,
+} from './consts';
+import {
+  isClass,
+  getAppInstance,
+  getAppSplashscreen,
+  hideAppSplashscreen,
+  registerGlobalHook,
+} from './methods';
 
 import ___checkForDIMissingDependencies from '../dev/di-checker';
 
 export function App(providers: DependencyProviders, options: AppOptions = {}) {
   return function (target: any) {
     GLOBAL.$tiniAppOptions = options; // set options
+    // register the exit of the app splashscreen
+    if (options.splashscreen) {
+      registerGlobalHook(
+        COMPONENT_TYPES.PAGE,
+        LIFECYCLE_HOOKS.ON_CHILDREN_READY,
+        (_, opts) =>
+          opts?.splashscreen !== 'auto' ? undefined : hideAppSplashscreen()
+      );
+    }
     // create app
     class result extends target {
       $options = GLOBAL.$tiniAppOptions;

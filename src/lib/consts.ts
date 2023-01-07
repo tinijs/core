@@ -8,6 +8,15 @@ export const enum COMPONENT_TYPES {
   PAGE = 'page',
   COMPONENT = 'component',
 }
+export const enum LIFECYCLE_HOOKS {
+  ON_CREATE = 'onCreate',
+  ON_INIT = 'onInit',
+  ON_CHANGES = 'onChanges',
+  ON_RENDERS = 'onRenders',
+  ON_READY = 'onReady',
+  ON_CHILDREN_READY = 'onChildrenReady',
+  ON_DESTROY = 'onDestroy',
+}
 
 export const APP_ROOT = 'app-root';
 export const ROUTER_OUTLET_ID = 'router-outlet';

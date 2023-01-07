@@ -1,12 +1,11 @@
 import {LitElement} from 'lit';
-import {COMPONENT_TYPES, GLOBAL} from './consts';
+import {LIFECYCLE_HOOKS} from './consts';
 import {
   TiniComponentConstructor,
   TiniComponentInstance,
   ConstructorArgs,
-  AppOptions,
 } from './types';
-import {hideAppSplashscreen} from './methods';
+import {runGlobalHooks} from './methods';
 
 export {
   property as Input,
@@ -30,20 +29,32 @@ const TiniComponentMixin = (superClass: TiniComponentConstructor) => {
 
     connectedCallback() {
       super.connectedCallback();
+      // component hook
       if (this.onCreate) this.onCreate();
+      // global hooks
+      runGlobalHooks(LIFECYCLE_HOOKS.ON_CREATE, this);
     }
 
     disconnectedCallback() {
       super.disconnectedCallback();
+      // component hook
       if (this.onDestroy) this.onDestroy();
+      // global hooks
+      runGlobalHooks(LIFECYCLE_HOOKS.ON_DESTROY, this);
     }
 
     willUpdate() {
+      // component hook
       if (this.onChanges) this.onChanges();
+      // global hooks
+      runGlobalHooks(LIFECYCLE_HOOKS.ON_CHANGES, this);
     }
 
     firstUpdated() {
+      // component hook
       if (this.onReady) this.onReady();
+      // global hooks
+      runGlobalHooks(LIFECYCLE_HOOKS.ON_READY, this);
       // process children rendering
       const root = this.shadowRoot as ShadowRoot;
       const children = root.querySelectorAll(
@@ -71,24 +82,27 @@ const TiniComponentMixin = (superClass: TiniComponentConstructor) => {
     }
 
     updated() {
+      // component hook
       if (this.onRenders) this.onRenders();
+      // global hooks
+      runGlobalHooks(LIFECYCLE_HOOKS.ON_RENDERS, this);
     }
 
     childrenFirstUpdated() {
+      // component hook
       if (this.onChildrenReady) this.onChildrenReady();
-      // handle app splashscreen
-      if (
-        this.componentType === COMPONENT_TYPES.PAGE &&
-        GLOBAL.$tiniAppOptions?.splashscreen === 'auto'
-      ) {
-        hideAppSplashscreen();
-      }
+      // global hooks
+      runGlobalHooks(LIFECYCLE_HOOKS.ON_CHILDREN_READY, this);
     }
 
     async scheduleUpdate() {
       const digest = async () => {
         this._pendingDI = []; // marked as resolved
+        // component hook
         if (this.onInit) await this.onInit();
+        // global hooks
+        runGlobalHooks(LIFECYCLE_HOOKS.ON_INIT, this);
+        // continue
         this._initialized = true; // mark as initialized
         super.scheduleUpdate();
       };
