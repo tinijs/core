@@ -2,11 +2,11 @@
 import {
   GLOBAL,
   APP_ROOT,
-  APP_SPLASH_SCREEN_ID,
-  APP_SPLASH_SCREEN,
+  APP_SPLASHSCREEN_ID,
+  APP_SPLASHSCREEN,
   NO_APP_ERROR,
 } from './consts';
-import {TiniApp, Global, DIRegistry} from './types';
+import {TiniApp, Global, DIRegistry, AppSplashscreenComponent} from './types';
 
 export function varName(className: string) {
   return className[0].toLowerCase() + className.substring(1);
@@ -47,16 +47,16 @@ export function getAppSplashscreen() {
   if (!app) return null;
   const root = (app as TiniApp).renderRoot;
   return (
-    root.querySelector(APP_SPLASH_SCREEN) ||
-    root.querySelector(`#${APP_SPLASH_SCREEN_ID}`)
+    root.querySelector(APP_SPLASHSCREEN) ||
+    root.querySelector(`#${APP_SPLASHSCREEN_ID}`)
   );
 }
 
 export function hideAppSplashscreen() {
-  const node = getAppSplashscreen();
+  const node = getAppSplashscreen() as AppSplashscreenComponent;
   if (!node) return;
-  if ((node as any)?.hide instanceof Function) {
-    (node as any).hide();
+  if (node.hide instanceof Function) {
+    node.hide();
   } else {
     node.remove();
   }

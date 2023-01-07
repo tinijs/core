@@ -96,6 +96,10 @@ export type TiniComponentConstructor = Constructor<LitElementInterface> &
 export type Constructor<T = {}> = new (...args: ConstructorArgs) => T;
 export type ConstructorArgs = any[];
 
+export interface AppSplashscreenComponent extends HTMLElement {
+  hide?(): void;
+}
+
 export type ObservableSubscription<Value> = (
   newVal: Value,
   oldVal: Value
