@@ -1,5 +1,4 @@
-import {LitElement, html, css} from 'lit';
-import {state, property, query, queryAll} from 'lit/decorators.js';
+import {LitElement} from 'lit';
 import {COMPONENT_TYPES, GLOBAL} from './consts';
 import {
   TiniComponentConstructor,
@@ -9,10 +8,13 @@ import {
 } from './types';
 import {hideAppSplashscreen} from './methods';
 
-export {html, css};
-export {property as Input};
-export {state as Reactive};
-export {query as Query, queryAll as QueryAll};
+export {
+  property as Input,
+  state as Reactive,
+  query as Query,
+  queryAll as QueryAll,
+  queryAsync as QueryAsync,
+} from 'lit/decorators';
 
 const TiniComponentMixin = (superClass: TiniComponentConstructor) => {
   class TiniComponentChild extends superClass {

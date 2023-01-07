@@ -58,7 +58,6 @@ export function hideAppSplashscreen() {
   if ((node as any)?.hide instanceof Function) {
     (node as any).hide();
   } else {
-    node.firstElementChild?.classList.add('exiting');
-    setTimeout(() => node.remove(), 500);
+    node.remove();
   }
 }
