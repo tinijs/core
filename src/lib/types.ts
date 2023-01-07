@@ -4,6 +4,7 @@ import {COMPONENT_TYPES} from './consts';
 
 export interface AppOptions {
   splashscreen?: 'auto' | 'manual';
+  navIndicator?: boolean;
 }
 
 export type TiniComponentType = COMPONENT_TYPES;

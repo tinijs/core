@@ -18,7 +18,6 @@ export {
 
 const TiniComponentMixin = (superClass: TiniComponentConstructor) => {
   class TiniComponentChild extends superClass {
-    private _appOptions?: AppOptions;
     private _dependenciesAvailable = !!this._pendingDI?.length;
     private get _dependenciesResolved() {
       return (this._pendingDI && this._pendingDI.length === 0) as boolean;
@@ -27,7 +26,6 @@ const TiniComponentMixin = (superClass: TiniComponentConstructor) => {
 
     constructor(...args: ConstructorArgs) {
       super(...args);
-      this._appOptions = GLOBAL.$tiniAppOptions;
     }
 
     connectedCallback() {
@@ -81,7 +79,7 @@ const TiniComponentMixin = (superClass: TiniComponentConstructor) => {
       // handle app splashscreen
       if (
         this.componentType === COMPONENT_TYPES.PAGE &&
-        this._appOptions?.splashscreen === 'auto'
+        GLOBAL.$tiniAppOptions?.splashscreen === 'auto'
       ) {
         hideAppSplashscreen();
       }

@@ -108,6 +108,16 @@ export function UseApp() {
   };
 }
 
+export function UseOptions() {
+  return function (target: Object, propertyKey: string) {
+    Reflect.defineProperty(target, propertyKey, {
+      get: () => GLOBAL.$tiniAppOptions,
+      enumerable: false,
+      configurable: false,
+    });
+  };
+}
+
 export function UseConfigs() {
   return function (target: Object, propertyKey: string) {
     Reflect.defineProperty(target, propertyKey, {
