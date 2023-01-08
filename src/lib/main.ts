@@ -1,4 +1,4 @@
-import {LitElement} from 'lit';
+import {LitElement, CSSResult} from 'lit';
 import {LIFECYCLE_HOOKS} from './consts';
 import {
   TiniComponentConstructor,
@@ -134,3 +134,7 @@ export const TiniComponent = TiniComponentMixin(
 export function asset(path: string) {
   return path;
 }
+
+export const unistylus = (classNames?: TemplateStringsArray) => {
+  return classNames as unknown as CSSResult;
+};
