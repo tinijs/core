@@ -37,6 +37,7 @@ export interface GlobalInstance {
   $tiniLHRegistry?: LHRegistry;
   $tiniAppOptions?: AppOptions;
   $tiniConfigs?: Record<string, unknown>;
+  $tiniWorkbox?: any;
   $tiniMeta?: any;
   $tiniRouter?: any;
   $tiniStore?: any;
@@ -46,6 +47,7 @@ export interface GlobalInstance {
 export type TiniApp = TiniComponentInstance & {
   $options?: AppOptions;
   $configs?: Record<string, unknown>;
+  $workbox?: any;
   $meta?: any;
   $router?: any;
   $store?: any;
