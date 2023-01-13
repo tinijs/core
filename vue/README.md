@@ -2,7 +2,7 @@
 
 // TODO: add the Doppelganger of Vue
 
-## Project struture
+## Project structure
 
 ```txt
 app/
@@ -22,7 +22,7 @@ pages/
 
 ### App
 
-// ...
+// TODO
 
 ### Components
 
@@ -62,6 +62,10 @@ import {TiniComponent, Component, Prop, html, css} from '@tinijs/core/vue';
     :host {
       color: green;
     }
+
+    h1 {
+      margin: 0;
+    }
   `;
 // </style>
 
@@ -75,4 +79,4 @@ import {TiniComponent, Component, Prop, html, css} from '@tinijs/core/vue';
 
 ## Syntax
 
-// ...
+// TODO

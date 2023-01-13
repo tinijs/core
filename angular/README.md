@@ -2,7 +2,7 @@
 
 // TODO: add the Doppelganger of Angular
 
-## Project struture
+## Project structure
 
 ```txt
 app/
@@ -32,7 +32,7 @@ pages/
 
 ### App
 
-// ...
+// TODO
 
 ### Components
 
@@ -70,9 +70,13 @@ class MyComponent extends TiniComponent {
 
 - `my-component.component.scss`
 
-```scss
+```css
 :host {
   color: green;
+}
+
+h1 {
+  margin: 0;
 }
 ```
 
@@ -84,4 +88,4 @@ class MyComponent extends TiniComponent {
 
 ## Syntax
 
-// ...
+// TODO

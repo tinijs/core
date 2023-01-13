@@ -1,17 +1,17 @@
 # Default (no doppelganger)
 
-## Project struture
+## Project structure
 
 ```txt
 app/
   ...
 services/
-  sample-1.service.ts
-  sample-2.service.ts
+  sample-1.ts
+  sample-2.ts
   ...
 components/
-  component-1.component.ts
-  component-2.component.ts
+  component-1.ts
+  component-2.ts
   ...
 pages/
   page-1/
@@ -22,11 +22,11 @@ pages/
 
 ### App
 
-// ...
+// TODO
 
 ### Components
 
-- `my-component.component.ts`
+- `my-component.ts`
 
 ```ts
 import {TiniComponent, Component, Input, Reactive, html, css} from '@tinijs/core';
@@ -58,6 +58,10 @@ class MyComponent extends TiniComponent {
     :host {
       color: green;
     }
+
+    h1 {
+      margin: 0;
+    }
   `;
 }
 ```
@@ -70,4 +74,4 @@ class MyComponent extends TiniComponent {
 
 ## Syntax
 
-// ...
+// TODO
