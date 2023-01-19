@@ -205,7 +205,7 @@ export function Observable(registerName?: string, noInitial?: boolean) {
   return function (target: any, propertyKey: string) {
     const valueKey = `_${propertyKey}Value`;
     const registerKey = registerName || `${propertyKey}Changed`;
-    let onChanged = (() => {}) as ObservableSubscription<unknown>;
+    const onChangedHandlers = [] as Array<ObservableSubscription<unknown>>;
     Reflect.defineProperty(target, valueKey, {
       value: undefined,
       writable: true,
@@ -214,11 +214,16 @@ export function Observable(registerName?: string, noInitial?: boolean) {
     });
     Reflect.defineProperty(target, registerKey, {
       value: (cb: ObservableSubscription<unknown>) => {
-        onChanged = cb;
+        const index = onChangedHandlers.length;
+        // register the handler
+        onChangedHandlers[index] = cb;
+        // initial
         const currentVal = target[valueKey];
         if (!noInitial && currentVal !== undefined) {
-          onChanged(currentVal, undefined);
+          onChangedHandlers[index](currentVal, undefined);
         }
+        // unsubcribe
+        return () => onChangedHandlers.splice(index, 1);
       },
       enumerable: false,
       configurable: false,
@@ -232,7 +237,9 @@ export function Observable(registerName?: string, noInitial?: boolean) {
             ? oldVal
             : JSON.parse(JSON.stringify(oldVal));
         target[valueKey] = newVal;
-        onChanged(newVal, oldVal);
+        onChangedHandlers.forEach(
+          handler => handler && handler(newVal, oldVal)
+        );
       },
       enumerable: false,
       configurable: false,

@@ -120,4 +120,6 @@ export type ObservableSubscription<Value> = (
 
 export type ObservableChanged<Value> = (
   subscription: ObservableSubscription<Value>
-) => void;
+) => ObservableUnsubscribe<Value>;
+
+export type ObservableUnsubscribe<Value> = () => ObservableSubscription<Value>;
