@@ -8,7 +8,7 @@ import {
   DependencyProviders,
   DependencyDef,
   DependencyProvider,
-  ObservableSubscription,
+  ObservableSubscriptionCallback,
 } from './types';
 import {
   APP_ROOT,
@@ -24,6 +24,7 @@ import {
   hideAppSplashscreen,
   registerGlobalHook,
 } from './methods';
+import {ObservableSubscription} from './observable';
 
 import ___checkForDIMissingDependencies from '../dev/di-checker';
 
@@ -205,7 +206,9 @@ export function Observable(registerName?: string, noInitial?: boolean) {
   return function (target: any, propertyKey: string) {
     const valueKey = `_${propertyKey}Value`;
     const registerKey = registerName || `${propertyKey}Changed`;
-    const onChangedHandlers = [] as Array<ObservableSubscription<unknown>>;
+    const onChangedHandlers = [] as Array<
+      ObservableSubscriptionCallback<unknown>
+    >;
     Reflect.defineProperty(target, valueKey, {
       value: undefined,
       writable: true,
@@ -213,7 +216,7 @@ export function Observable(registerName?: string, noInitial?: boolean) {
       configurable: false,
     });
     Reflect.defineProperty(target, registerKey, {
-      value: (cb: ObservableSubscription<unknown>) => {
+      value: (cb: ObservableSubscriptionCallback<unknown>) => {
         const index = onChangedHandlers.length;
         // register the handler
         onChangedHandlers[index] = cb;
@@ -241,6 +244,17 @@ export function Observable(registerName?: string, noInitial?: boolean) {
           handler => handler && handler(newVal, oldVal)
         );
       },
+      enumerable: false,
+      configurable: false,
+    });
+  };
+}
+
+export function SubscribeObservable() {
+  return function (target: Object, propertyKey: string) {
+    Reflect.defineProperty(target, propertyKey, {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      value: new ObservableSubscription(target as any),
       enumerable: false,
       configurable: false,
     });

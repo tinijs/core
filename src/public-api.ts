@@ -32,4 +32,5 @@ export * from './lib/methods';
 export * from './lib/consts';
 export * from './lib/types';
 export * from './lib/event';
+export * from './lib/observable';
 export * from './lib/main';
