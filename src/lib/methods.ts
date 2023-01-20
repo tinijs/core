@@ -1,11 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {
-  GLOBAL,
-  APP_ROOT,
-  APP_SPLASHSCREEN_ID,
-  APP_SPLASHSCREEN,
-  NO_APP_ERROR,
-} from './consts';
+import {GLOBAL, APP_ROOT, APP_SPLASHSCREEN_ID, NO_APP_ERROR} from './consts';
 import {
   TiniApp,
   Global,
@@ -100,13 +94,7 @@ export function runGlobalHooks(
 }
 
 export function getAppSplashscreen() {
-  const app = getAppInstance();
-  if (!app) return null;
-  const root = (app as TiniApp).renderRoot;
-  return (
-    root.querySelector(APP_SPLASHSCREEN) ||
-    root.querySelector(`#${APP_SPLASHSCREEN_ID}`)
-  );
+  return document.getElementById(APP_SPLASHSCREEN_ID);
 }
 
 export function hideAppSplashscreen() {
