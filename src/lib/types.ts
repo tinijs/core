@@ -113,14 +113,10 @@ export interface AppSplashscreenComponent extends HTMLElement {
   hide?(): void;
 }
 
-export type ObservableSubscriptionCallback<Value> = (
-  newVal: Value,
-  oldVal: Value
-) => void;
+export type ObserverCallback<Value> = (newVal: Value, oldVal: Value) => void;
 
 export type ObservableSubscribe<Value> = (
-  subscription: ObservableSubscriptionCallback<Value>
+  cb: ObserverCallback<Value>
 ) => ObservableUnsubscribe<Value>;
 
-export type ObservableUnsubscribe<Value> =
-  () => ObservableSubscriptionCallback<Value>;
+export type ObservableUnsubscribe<Value> = () => ObserverCallback<Value>;

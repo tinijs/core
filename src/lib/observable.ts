@@ -1,7 +1,7 @@
 import {ReactiveController, ReactiveControllerHost} from 'lit';
 import {ObservableUnsubscribe} from './types';
 
-export class ObservableSubscription<Value> implements ReactiveController {
+export class Observer<Value> implements ReactiveController {
   private _host!: ReactiveControllerHost;
   unsubscribes: ObservableUnsubscribe<Value>[] = [];
 
