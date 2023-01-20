@@ -206,9 +206,7 @@ export function Observable(registerName?: string, noInitial?: boolean) {
   return function (target: any, propertyKey: string) {
     const valueKey = `_${propertyKey}Value`;
     const registerKey = registerName || `${propertyKey}Changed`;
-    const onChangedHandlers = [] as Array<
-      ObservableSubscriptionCallback<unknown>
-    >;
+    const onChangedHandlers: ObservableSubscriptionCallback<unknown>[] = [];
     Reflect.defineProperty(target, valueKey, {
       value: undefined,
       writable: true,
