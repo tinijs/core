@@ -29,32 +29,28 @@ const TiniComponentMixin = (superClass: TiniComponentConstructor) => {
 
     connectedCallback() {
       super.connectedCallback();
-      // component hook
-      if (this.onCreate) this.onCreate();
       // global hooks
       runGlobalHooks(LIFECYCLE_HOOKS.ON_CREATE, this);
+      // component hook
+      if (this.onCreate) this.onCreate();
     }
 
     disconnectedCallback() {
       super.disconnectedCallback();
-      // component hook
-      if (this.onDestroy) this.onDestroy();
       // global hooks
       runGlobalHooks(LIFECYCLE_HOOKS.ON_DESTROY, this);
+      // component hook
+      if (this.onDestroy) this.onDestroy();
     }
 
     willUpdate() {
-      // component hook
-      if (this.onChanges) this.onChanges();
       // global hooks
       runGlobalHooks(LIFECYCLE_HOOKS.ON_CHANGES, this);
+      // component hook
+      if (this.onChanges) this.onChanges();
     }
 
     firstUpdated() {
-      // component hook
-      if (this.onReady) this.onReady();
-      // global hooks
-      runGlobalHooks(LIFECYCLE_HOOKS.ON_READY, this);
       // process children rendering
       const root = this.shadowRoot as ShadowRoot;
       const children = root.querySelectorAll(
@@ -79,20 +75,24 @@ const TiniComponentMixin = (superClass: TiniComponentConstructor) => {
       } else {
         this.childrenFirstUpdated();
       }
+      // global hooks
+      runGlobalHooks(LIFECYCLE_HOOKS.ON_READY, this);
+      // component hook
+      if (this.onReady) this.onReady();
     }
 
     updated() {
-      // component hook
-      if (this.onRenders) this.onRenders();
       // global hooks
       runGlobalHooks(LIFECYCLE_HOOKS.ON_RENDERS, this);
+      // component hook
+      if (this.onRenders) this.onRenders();
     }
 
     childrenFirstUpdated() {
-      // component hook
-      if (this.onChildrenReady) this.onChildrenReady();
       // global hooks
       runGlobalHooks(LIFECYCLE_HOOKS.ON_CHILDREN_READY, this);
+      // component hook
+      if (this.onChildrenReady) this.onChildrenReady();
     }
 
     async scheduleUpdate() {

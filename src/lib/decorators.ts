@@ -2,6 +2,8 @@
 import {customElement} from 'lit/decorators.js';
 import {getDIRegistry, getConfigs} from './methods';
 import {
+  Global,
+  TiniApp,
   TiniComponentType,
   TiniComponentChild,
   AppOptions,
@@ -36,10 +38,19 @@ export function App(providers: DependencyProviders, options: AppOptions = {}) {
       registerGlobalHook(
         COMPONENT_TYPES.PAGE,
         LIFECYCLE_HOOKS.ON_CHILDREN_READY,
-        (_, opts) =>
+        (page, appOrGlobal, opts) =>
           opts?.splashscreen !== 'auto' ? undefined : hideAppSplashscreen()
       );
     }
+    // register page metas
+    registerGlobalHook(
+      COMPONENT_TYPES.PAGE,
+      LIFECYCLE_HOOKS.ON_READY,
+      (page, appOrGlobal) =>
+        (
+          (appOrGlobal as TiniApp).$meta || (appOrGlobal as Global).$tiniMeta
+        )?.setPageMetas(page.metas, location.pathname === '/')
+    );
     // create app
     class result extends target {
       $options = GLOBAL.$tiniAppOptions;

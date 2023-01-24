@@ -60,6 +60,7 @@ export type TiniComponentChild = TiniComponentInterface & LitElementInterface;
 
 export type GlobalLifecycleHook = (
   component: TiniComponentInstance,
+  appOrGlobal: TiniApp | Global,
   appOptions?: AppOptions
 ) => void;
 
@@ -99,6 +100,8 @@ export interface TiniComponentInterface {
   onReady?(): void;
   onChildrenReady?(): void;
   onDestroy?(): void;
+  // others
+  metas?: Record<string, any>;
 }
 
 export type LitElementInterface = LitElement;

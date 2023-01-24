@@ -90,7 +90,10 @@ export function runGlobalHooks(
 ) {
   const globalHooks = getGlobalHooks(component.componentType, cycle);
   if (!globalHooks?.length) return;
-  globalHooks.forEach(action => action(component, GLOBAL.$tiniAppOptions));
+  const appOrGlobal = getAppInstance(true);
+  globalHooks.forEach(action =>
+    action(component, appOrGlobal, GLOBAL.$tiniAppOptions)
+  );
 }
 
 export function getAppSplashscreen() {
