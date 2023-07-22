@@ -13,9 +13,6 @@ export class EventEmitter<Payload> {
     return this._host.dispatchEvent(
       new CustomEvent(this._eventName, {
         detail: payload,
-        bubbles: true,
-        composed: true,
-        cancelable: true,
         ...customEventInit,
       })
     );

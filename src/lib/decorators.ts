@@ -1,51 +1,134 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import {adoptStyles} from 'lit';
 import {customElement} from 'lit/decorators.js';
-import {getDIRegistry, getConfigs} from './methods';
 import {
   Global,
   TiniApp,
-  TiniComponentType,
   TiniComponentChild,
   AppOptions,
-  DependencyProviders,
+  ComponentOptions,
   DependencyDef,
   DependencyProvider,
   ObserverCallback,
+  ThemingOptions,
 } from './types';
 import {
   APP_ROOT,
   GLOBAL,
-  COMPONENT_TYPES,
-  LIFECYCLE_HOOKS,
+  ComponentTypes,
+  LifecycleHooks,
   NO_REGISTER_ERROR,
 } from './consts';
 import {
   isClass,
+  getDIRegistry,
+  getConfigs,
   getAppInstance,
   getAppSplashscreen,
   hideAppSplashscreen,
   registerGlobalHook,
+  useComponents,
 } from './methods';
 import {Observer} from './observable';
 
 import ___checkForDIMissingDependencies from './di-checker';
 
-export function App(providers: DependencyProviders, options: AppOptions = {}) {
+export function Components(items: Record<string, CustomElementConstructor>) {
+  return function (target: any) {
+    useComponents(items);
+    return target;
+  };
+}
+
+export function Theming({styling, scripting}: ThemingOptions) {
+  return function (target: any) {
+    // originals
+    const originalConnectedCallback = target.prototype.connectedCallback;
+    const originalDisconnectedCallback = target.prototype.disconnectedCallback;
+    const originalUpdated = target.prototype.updated;
+    // styles
+    const unsubscribeKey = Symbol();
+    const applyStyles = (host: any, soulName?: string) => {
+      soulName ||= document.body.dataset.theme?.split('/')[0];
+      // retrieve styles
+      const originalStyles = target.styles || [];
+      const styles = (
+        !styling
+          ? []
+          : !soulName || !styling[soulName]
+          ? Object.values(styling)[0]
+          : styling[soulName]
+      ).concat(
+        originalStyles instanceof Array ? originalStyles : [originalStyles]
+      );
+      // affect
+      adoptStyles(host.shadowRoot, styles);
+    };
+    // scripts
+    const unscriptKey = Symbol();
+    const dummyScript = (host: any) => host;
+    const applyScripts = (host: any, soulName?: string) => {
+      soulName ||= document.body.dataset.theme?.split('/')[0];
+      // retrieve scripts
+      const scripts: any = !scripting
+        ? {}
+        : !soulName || !scripting[soulName]
+        ? Object.values(scripting)[0]
+        : scripting[soulName];
+      // affect
+      (host[unscriptKey] || dummyScript)(host);
+      host[unscriptKey] = scripts?.unscript || dummyScript;
+      (scripts?.script || dummyScript)(host);
+    };
+
+    // connected/disconnected
+    target.prototype.connectedCallback = function () {
+      originalConnectedCallback?.bind(this)();
+      // watch for soul change
+      if (!GLOBAL.$tiniThemingSubsciptions) {
+        GLOBAL.$tiniThemingSubsciptions = [];
+      }
+      const pointer = GLOBAL.$tiniThemingSubsciptions.push(soul => {
+        applyStyles(this, soul);
+        applyScripts(this, soul);
+      });
+      this[unsubscribeKey] = () => GLOBAL.$tiniThemingSubsciptions?.splice(pointer - 1, 1);
+      // apply styles
+      applyStyles(this);
+    };
+    target.prototype.disconnectedCallback = function () {
+      originalDisconnectedCallback?.bind(this)();
+      // unwatch for soul change
+      this[unsubscribeKey]?.();
+    };
+
+    // updated
+    target.prototype.updated = function (...params: any[]) {
+      originalUpdated?.bind(this)(...params);
+      // apply scripts
+      applyScripts(this);
+    };
+
+    return target;
+  };
+}
+
+export function App(options: AppOptions = {}) {
   return function (target: any) {
     GLOBAL.$tiniAppOptions = options; // set options
     // register the exit of the app splashscreen
     if (options.splashscreen) {
       registerGlobalHook(
-        COMPONENT_TYPES.PAGE,
-        LIFECYCLE_HOOKS.ON_CHILDREN_READY,
+        ComponentTypes.Page,
+        LifecycleHooks.OnChildrenReady,
         (page, appOrGlobal, opts) =>
           opts?.splashscreen !== 'auto' ? undefined : hideAppSplashscreen()
       );
     }
     // register page metas
     registerGlobalHook(
-      COMPONENT_TYPES.PAGE,
-      LIFECYCLE_HOOKS.ON_READY,
+      ComponentTypes.Page,
+      LifecycleHooks.OnReady,
       (page, appOrGlobal) =>
         (
           (appOrGlobal as TiniApp).$meta || (appOrGlobal as Global).$tiniMeta
@@ -54,11 +137,12 @@ export function App(providers: DependencyProviders, options: AppOptions = {}) {
     // create app
     class result extends target {
       $options = GLOBAL.$tiniAppOptions;
-      componentType = COMPONENT_TYPES.APP;
+      componentType = ComponentTypes.App;
     }
     // load the registry
     const dependencyRegistry = getDIRegistry();
     // add the registers
+    const providers = options.providers || {};
     const providerIds = Object.keys(providers);
     for (let i = 0; i < providerIds.length; i++) {
       const id = providerIds[i];
@@ -114,24 +198,26 @@ export function App(providers: DependencyProviders, options: AppOptions = {}) {
   };
 }
 
-export function Component(tagName: string, type?: TiniComponentType) {
+export function Component(options: ComponentOptions = {}) {
+  if (options.components) useComponents(options.components);
   return function (target: any) {
     class result extends target {
-      componentType = type || COMPONENT_TYPES.COMPONENT;
+      componentType = options.type || ComponentTypes.Component;
     }
-    return customElement(tagName)(result as any);
+    if (options.theming) Theming(options.theming)(result);
+    return !options.name ? result : customElement(options.name)(result as any);
   };
 }
 
-export function Page(tagName: string) {
-  return Component(tagName, COMPONENT_TYPES.PAGE);
+export function Page(options?: Omit<ComponentOptions, 'type'>) {
+  return Component({...options, type: ComponentTypes.Page});
 }
 
-export function Layout(tagName: string) {
-  return Component(tagName, COMPONENT_TYPES.LAYOUT);
+export function Layout(options?: Omit<ComponentOptions, 'type'>) {
+  return Component({...options, type: ComponentTypes.Layout});
 }
 
-export function UseApp() {
+export function GetApp() {
   return function (target: Object, propertyKey: string) {
     Reflect.defineProperty(target, propertyKey, {
       get: () => getAppInstance(),
@@ -141,7 +227,7 @@ export function UseApp() {
   };
 }
 
-export function UseOptions() {
+export function GetOptions() {
   return function (target: Object, propertyKey: string) {
     Reflect.defineProperty(target, propertyKey, {
       get: () => GLOBAL.$tiniAppOptions,
@@ -151,7 +237,7 @@ export function UseOptions() {
   };
 }
 
-export function UseConfigs() {
+export function GetConfigs() {
   return function (target: Object, propertyKey: string) {
     Reflect.defineProperty(target, propertyKey, {
       get: () => getConfigs(),
@@ -161,7 +247,7 @@ export function UseConfigs() {
   };
 }
 
-export function UseSplashscreen() {
+export function GetSplashscreen() {
   return function (target: Object, propertyKey: string) {
     Reflect.defineProperty(target, propertyKey, {
       get: () => getAppSplashscreen(),

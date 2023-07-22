@@ -1,14 +1,22 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {LitElement} from 'lit';
-import {COMPONENT_TYPES, LIFECYCLE_HOOKS} from './consts';
+import {LitElement, CSSResult} from 'lit';
+import {ComponentTypes, LifecycleHooks} from './consts';
 
 export interface AppOptions {
+  providers?: DependencyProviders;
   splashscreen?: 'auto' | 'manual';
   navIndicator?: boolean;
 }
 
-export type TiniComponentType = COMPONENT_TYPES;
-export type TiniLifecycleHook = LIFECYCLE_HOOKS;
+export interface ComponentOptions {
+  name?: string;
+  type?: ComponentTypes;
+  components?: Record<string, CustomElementConstructor>;
+  theming?: ThemingOptions;
+}
+
+export type TiniComponentType = ComponentTypes;
+export type TiniLifecycleHook = LifecycleHooks;
 
 export type ComponentConstruct = (target: any) => any;
 
@@ -36,6 +44,7 @@ export interface GlobalInstance {
   $tiniDIRegistry?: DIRegistry;
   $tiniLHRegistry?: LHRegistry;
   $tiniAppOptions?: AppOptions;
+  $tiniThemingSubsciptions?: ThemingSubscription[];
   $tiniConfigs?: Record<string, unknown>;
   $tiniWorkbox?: any;
   $tiniMeta?: any;
@@ -95,7 +104,7 @@ export interface TiniComponentInterface {
   // custom/alias hooks
   onCreate?(): void;
   onInit?(): void | Promise<void>;
-  onChanges?(): void;
+  onChanges?(changedProperties: any): void;
   onRenders?(): void;
   onReady?(): void;
   onChildrenReady?(): void;
@@ -123,3 +132,15 @@ export type ObservableSubscribe<Value> = (
 ) => ObservableUnsubscribe<Value>;
 
 export type ObservableUnsubscribe<Value> = () => ObserverCallback<Value>;
+
+export type ThemingSubscription = (soul: string) => void;
+
+export interface ThemingScripting {
+  script: (host: HTMLElement) => void;
+  unscript: ThemingScripting['script'];
+}
+
+export interface ThemingOptions {
+  styling?: Record<string, CSSResult[]>;
+  scripting?: Record<string, ThemingScripting>;
+}

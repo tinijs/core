@@ -1,5 +1,5 @@
-import {LitElement, CSSResult} from 'lit';
-import {LIFECYCLE_HOOKS} from './consts';
+import {LitElement} from 'lit';
+import {LifecycleHooks} from './consts';
 import {
   TiniComponentConstructor,
   TiniComponentInstance,
@@ -30,7 +30,7 @@ const TiniComponentMixin = (superClass: TiniComponentConstructor) => {
     connectedCallback() {
       super.connectedCallback();
       // global hooks
-      runGlobalHooks(LIFECYCLE_HOOKS.ON_CREATE, this);
+      runGlobalHooks(LifecycleHooks.OnCreate, this);
       // component hook
       if (this.onCreate) this.onCreate();
     }
@@ -38,16 +38,16 @@ const TiniComponentMixin = (superClass: TiniComponentConstructor) => {
     disconnectedCallback() {
       super.disconnectedCallback();
       // global hooks
-      runGlobalHooks(LIFECYCLE_HOOKS.ON_DESTROY, this);
+      runGlobalHooks(LifecycleHooks.OnDestroy, this);
       // component hook
       if (this.onDestroy) this.onDestroy();
     }
 
-    willUpdate() {
+    willUpdate(changedProperties: any) {
       // global hooks
-      runGlobalHooks(LIFECYCLE_HOOKS.ON_CHANGES, this);
+      runGlobalHooks(LifecycleHooks.OnChanges, this);
       // component hook
-      if (this.onChanges) this.onChanges();
+      if (this.onChanges) this.onChanges(changedProperties);
     }
 
     firstUpdated() {
@@ -76,21 +76,21 @@ const TiniComponentMixin = (superClass: TiniComponentConstructor) => {
         this.childrenFirstUpdated();
       }
       // global hooks
-      runGlobalHooks(LIFECYCLE_HOOKS.ON_READY, this);
+      runGlobalHooks(LifecycleHooks.OnReady, this);
       // component hook
       if (this.onReady) this.onReady();
     }
 
     updated() {
       // global hooks
-      runGlobalHooks(LIFECYCLE_HOOKS.ON_RENDERS, this);
+      runGlobalHooks(LifecycleHooks.OnRenders, this);
       // component hook
       if (this.onRenders) this.onRenders();
     }
 
     childrenFirstUpdated() {
       // global hooks
-      runGlobalHooks(LIFECYCLE_HOOKS.ON_CHILDREN_READY, this);
+      runGlobalHooks(LifecycleHooks.OnChildrenReady, this);
       // component hook
       if (this.onChildrenReady) this.onChildrenReady();
     }
@@ -101,7 +101,7 @@ const TiniComponentMixin = (superClass: TiniComponentConstructor) => {
         // component hook
         if (this.onInit) await this.onInit();
         // global hooks
-        runGlobalHooks(LIFECYCLE_HOOKS.ON_INIT, this);
+        runGlobalHooks(LifecycleHooks.OnInit, this);
         // continue
         this._initialized = true; // mark as initialized
         super.scheduleUpdate();
@@ -130,11 +130,3 @@ const TiniComponentMixin = (superClass: TiniComponentConstructor) => {
 export const TiniComponent = TiniComponentMixin(
   LitElement as unknown as TiniComponentConstructor
 ) as TiniComponentConstructor;
-
-export function asset(path: string) {
-  return path;
-}
-
-export const unistylus = (classNames?: TemplateStringsArray) => {
-  return classNames as unknown as CSSResult;
-};

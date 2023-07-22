@@ -12,8 +12,8 @@ import {
   AppSplashscreenComponent,
 } from './types';
 
-export function varName(className: string) {
-  return className[0].toLowerCase() + className.substring(1);
+export function asset(path: string) {
+  return path;
 }
 
 export function isClass(input: unknown) {
@@ -107,5 +107,29 @@ export function hideAppSplashscreen() {
     node.hide();
   } else {
     node.remove();
+  }
+}
+
+export function useComponents(items: Record<string, CustomElementConstructor>) {
+  Object.keys(items).forEach(tagName => {
+    const isDefined = customElements.get(tagName);
+    if (!isDefined) {
+      customElements.define(tagName, items[tagName]);
+    }
+  });
+}
+
+export function changeTheme({soul, skin}: {soul?: string; skin?: string}) {
+  const [currentSoul, currentSkin] =
+    document.body.dataset.theme?.split('/') || [];
+  soul ||= currentSoul;
+  skin ||= currentSkin;
+  if (soul && skin) {
+    document.body.dataset.theme = `${soul}/${skin}`;
+    if (soul !== currentSoul) {
+      GLOBAL.$tiniThemingSubsciptions?.forEach(subscription =>
+        subscription(soul as string)
+      );
+    }
   }
 }
