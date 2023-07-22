@@ -51,20 +51,6 @@ export class Page404 extends TiniComponent {
 
 For more detail, please visit the docs: <https://tinijs.dev/docs>
 
-## The Doppelgangers
-
-**The concept: provide the similar syntax for developers from other frameworks.**
-
-There are several ways of using the TiniJS framework:
-
-- `Default`: for new developers and Lit developers and any developers ([more detail](./src/README.md)).
-- `Angular`: same as the *Default*, but it has a project structure similar to Angular ([more detail](./angular/README.md)).
-- `Vue`: similar to the Vue SFC syntax and it has a NuxtJS structure ([more detail](./vue/README.md)).
-- `React`: similar to a NextJS project ([more detail](./react/README.md)).
-- `Svelte`: similar to a SvelteKit project ([more detail](./svelte/README.md)).
-
-There may be more with the same concept.
-
 ## API
 
 // TODO

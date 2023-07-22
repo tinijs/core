@@ -1,6 +1,2 @@
 src/**/*.js
-angular/**/*.js
-vue/**/*.js
-react/**/*.js
-svelte/**/*.js
 test/**/*.js

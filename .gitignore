@@ -1,10 +1,6 @@
 .DS_Store
 node_modules/
 src/**/*.js
-angular/**/*.js
-vue/**/*.js
-react/**/*.js
-svelte/**/*.js
 test/**/*.js
 *.map
 *.d.ts

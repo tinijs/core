@@ -28,7 +28,7 @@ import {
 } from './methods';
 import {Observer} from './observable';
 
-import ___checkForDIMissingDependencies from '../dev/di-checker';
+import ___checkForDIMissingDependencies from './di-checker';
 
 export function App(providers: DependencyProviders, options: AppOptions = {}) {
   return function (target: any) {
