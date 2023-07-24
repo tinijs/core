@@ -8,11 +8,11 @@ export interface AppOptions {
   navIndicator?: boolean;
 }
 
-export interface ComponentOptions {
+export interface ComponentOptions<Themes extends string> {
   name?: string;
   type?: ComponentTypes;
   components?: Record<string, CustomElementConstructor>;
-  theming?: ThemingOptions;
+  theming?: ThemingOptions<Themes>;
 }
 
 export type TiniComponentType = ComponentTypes;
@@ -140,7 +140,7 @@ export interface ThemingScripting {
   unscript: ThemingScripting['script'];
 }
 
-export interface ThemingOptions {
-  styling?: Record<string, CSSResult[]>;
-  scripting?: Record<string, ThemingScripting>;
+export interface ThemingOptions<Themes extends string> {
+  styling?: Record<Themes, CSSResult[]>;
+  scripting?: Record<Themes, ThemingScripting>;
 }

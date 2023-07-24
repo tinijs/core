@@ -40,7 +40,7 @@ export function Components(items: Record<string, CustomElementConstructor>) {
   };
 }
 
-export function Theming({styling, scripting}: ThemingOptions) {
+export function Theming<Themes extends string>({styling, scripting}: ThemingOptions<Themes>) {
   return function (target: any) {
     // originals
     const originalConnectedCallback = target.prototype.connectedCallback;
@@ -48,16 +48,16 @@ export function Theming({styling, scripting}: ThemingOptions) {
     const originalUpdated = target.prototype.updated;
     // styles
     const unsubscribeKey = Symbol();
-    const applyStyles = (host: any, soulName?: string) => {
-      soulName ||= document.body.dataset.theme?.split('/')[0];
+    const applyStyles = (host: any, soulName?: Themes) => {
+      soulName ||= document.body.dataset.theme?.split('/')[0] as Themes;
       // retrieve styles
       const originalStyles = target.styles || [];
       const styles = (
         !styling
           ? []
           : !soulName || !styling[soulName]
-          ? Object.values(styling)[0]
-          : styling[soulName]
+            ? Object.values(styling)[0]
+            : styling[soulName] as any
       ).concat(
         originalStyles instanceof Array ? originalStyles : [originalStyles]
       );
@@ -67,8 +67,8 @@ export function Theming({styling, scripting}: ThemingOptions) {
     // scripts
     const unscriptKey = Symbol();
     const dummyScript = (host: any) => host;
-    const applyScripts = (host: any, soulName?: string) => {
-      soulName ||= document.body.dataset.theme?.split('/')[0];
+    const applyScripts = (host: any, soulName?: Themes) => {
+      soulName ||= document.body.dataset.theme?.split('/')[0] as Themes;
       // retrieve scripts
       const scripts: any = !scripting
         ? {}
@@ -89,8 +89,8 @@ export function Theming({styling, scripting}: ThemingOptions) {
         GLOBAL.$tiniThemingSubsciptions = [];
       }
       const pointer = GLOBAL.$tiniThemingSubsciptions.push(soul => {
-        applyStyles(this, soul);
-        applyScripts(this, soul);
+        applyStyles(this, soul as Themes);
+        applyScripts(this, soul as Themes);
       });
       this[unsubscribeKey] = () => GLOBAL.$tiniThemingSubsciptions?.splice(pointer - 1, 1);
       // apply styles
@@ -198,7 +198,7 @@ export function App(options: AppOptions = {}) {
   };
 }
 
-export function Component(options: ComponentOptions = {}) {
+export function Component<Themes extends string>(options: ComponentOptions<Themes> = {}) {
   if (options.components) useComponents(options.components);
   return function (target: any) {
     class result extends target {
@@ -209,11 +209,11 @@ export function Component(options: ComponentOptions = {}) {
   };
 }
 
-export function Page(options?: Omit<ComponentOptions, 'type'>) {
+export function Page<Themes extends string>(options?: Omit<ComponentOptions<Themes>, 'type'>) {
   return Component({...options, type: ComponentTypes.Page});
 }
 
-export function Layout(options?: Omit<ComponentOptions, 'type'>) {
+export function Layout<Themes extends string>(options?: Omit<ComponentOptions<Themes>, 'type'>) {
   return Component({...options, type: ComponentTypes.Layout});
 }
 

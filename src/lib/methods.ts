@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import {CSSResult} from 'lit';
 import {GLOBAL, APP_ROOT, APP_SPLASHSCREEN_ID, NO_APP_ERROR} from './consts';
 import {
   TiniApp,
@@ -10,6 +11,7 @@ import {
   TiniLifecycleHook,
   GlobalLifecycleHook,
   AppSplashscreenComponent,
+  ThemingOptions,
 } from './types';
 
 export function asset(path: string) {
@@ -108,6 +110,29 @@ export function hideAppSplashscreen() {
   } else {
     node.remove();
   }
+}
+
+export function stylingWithBaseStyles<Themes extends string>(
+  bases: Array<Record<Themes, CSSResult>>,
+  additionalStyling?: Record<Themes, CSSResult[]>
+) {
+  // bases
+  const styling = bases.reduce((result, item) => {
+    Object.keys(item).forEach(key => {
+      result[key] ||= [];
+      result[key].push(item[key as Themes]);
+    });
+    return result;
+  }, {} as Record<string, CSSResult[]>);
+  // more
+  if (additionalStyling) {
+    Object.keys(additionalStyling).forEach(key => {
+      styling[key] ||= [];
+      styling[key].push(...additionalStyling[key as Themes]);
+    });
+  }
+  // result
+  return styling as NonNullable<ThemingOptions<Themes>['styling']>;
 }
 
 export function useComponents(items: Record<string, CustomElementConstructor>) {
