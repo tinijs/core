@@ -112,7 +112,7 @@ export function hideAppSplashscreen() {
   }
 }
 
-export function stylingWithBaseStyles<Themes extends string>(
+export function stylingWithBases<Themes extends string>(
   bases: Array<Record<Themes, CSSResult>>,
   additionalStyling?: Record<Themes, CSSResult[]>
 ) {
