@@ -40,7 +40,10 @@ export function Components(items: Record<string, CustomElementConstructor>) {
   };
 }
 
-export function Theming<Themes extends string>({styling, scripting}: ThemingOptions<Themes>) {
+export function Theming<Themes extends string>({
+  styling,
+  scripting,
+}: ThemingOptions<Themes>) {
   return function (target: any) {
     // originals
     const originalConnectedCallback = target.prototype.connectedCallback;
@@ -56,8 +59,8 @@ export function Theming<Themes extends string>({styling, scripting}: ThemingOpti
         !styling
           ? []
           : !soulName || !styling[soulName]
-            ? Object.values(styling)[0]
-            : styling[soulName] as any
+          ? Object.values(styling)[0]
+          : (styling[soulName] as any)
       ).concat(
         originalStyles instanceof Array ? originalStyles : [originalStyles]
       );
@@ -86,13 +89,14 @@ export function Theming<Themes extends string>({styling, scripting}: ThemingOpti
       originalConnectedCallback?.bind(this)();
       // watch for soul change
       if (!GLOBAL.$tiniThemingSubsciptions) {
-        GLOBAL.$tiniThemingSubsciptions = [];
+        GLOBAL.$tiniThemingSubsciptions = new Map();
       }
-      const pointer = GLOBAL.$tiniThemingSubsciptions.push(soul => {
+      GLOBAL.$tiniThemingSubsciptions.set(unsubscribeKey, soul => {
         applyStyles(this, soul as Themes);
         applyScripts(this, soul as Themes);
       });
-      this[unsubscribeKey] = () => GLOBAL.$tiniThemingSubsciptions?.splice(pointer - 1, 1);
+      this[unsubscribeKey] = () =>
+        GLOBAL.$tiniThemingSubsciptions?.delete(unsubscribeKey);
       // apply styles
       applyStyles(this);
     };
@@ -198,7 +202,9 @@ export function App(options: AppOptions = {}) {
   };
 }
 
-export function Component<Themes extends string>(options: ComponentOptions<Themes> = {}) {
+export function Component<Themes extends string>(
+  options: ComponentOptions<Themes> = {}
+) {
   if (options.components) useComponents(options.components);
   return function (target: any) {
     class result extends target {
@@ -209,11 +215,15 @@ export function Component<Themes extends string>(options: ComponentOptions<Theme
   };
 }
 
-export function Page<Themes extends string>(options?: Omit<ComponentOptions<Themes>, 'type'>) {
+export function Page<Themes extends string>(
+  options?: Omit<ComponentOptions<Themes>, 'type'>
+) {
   return Component({...options, type: ComponentTypes.Page});
 }
 
-export function Layout<Themes extends string>(options?: Omit<ComponentOptions<Themes>, 'type'>) {
+export function Layout<Themes extends string>(
+  options?: Omit<ComponentOptions<Themes>, 'type'>
+) {
   return Component({...options, type: ComponentTypes.Layout});
 }
 
@@ -303,7 +313,7 @@ export function Observable(registerName?: string, noInitial?: boolean) {
   return function (target: any, propertyKey: string) {
     const valueKey = `_${propertyKey}Value`;
     const registerKey = registerName || `${propertyKey}Changed`;
-    const onChangedHandlers: ObserverCallback<unknown>[] = [];
+    const onChangedHandlers: Map<symbol, ObserverCallback<unknown>> = new Map();
     Reflect.defineProperty(target, valueKey, {
       value: undefined,
       writable: true,
@@ -312,16 +322,16 @@ export function Observable(registerName?: string, noInitial?: boolean) {
     });
     Reflect.defineProperty(target, registerKey, {
       value: (cb: ObserverCallback<unknown>) => {
-        const index = onChangedHandlers.length;
+        const subsciptionId = Symbol();
         // register the handler
-        onChangedHandlers[index] = cb;
+        onChangedHandlers.set(subsciptionId, cb);
         // initial
         const currentVal = target[valueKey];
         if (!noInitial && currentVal !== undefined) {
-          onChangedHandlers[index](currentVal, undefined);
+          onChangedHandlers.get(subsciptionId)?.(currentVal, undefined);
         }
         // unsubcribe
-        return () => onChangedHandlers.splice(index, 1);
+        return () => onChangedHandlers.delete(subsciptionId);
       },
       enumerable: false,
       configurable: false,

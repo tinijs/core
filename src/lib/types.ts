@@ -44,7 +44,7 @@ export interface GlobalInstance {
   $tiniDIRegistry?: DIRegistry;
   $tiniLHRegistry?: LHRegistry;
   $tiniAppOptions?: AppOptions;
-  $tiniThemingSubsciptions?: ThemingSubscription[];
+  $tiniThemingSubsciptions?: Map<symbol, ThemingSubscription>;
   $tiniConfigs?: Record<string, unknown>;
   $tiniWorkbox?: any;
   $tiniMeta?: any;

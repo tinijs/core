@@ -4,7 +4,7 @@ export const GLOBAL = window as unknown as GlobalInstance;
 
 export const enum ComponentTypes {
   App = 'app',
-  Layout= 'layout',
+  Layout = 'layout',
   Page = 'page',
   Component = 'component',
 }
