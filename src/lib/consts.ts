@@ -2,14 +2,14 @@ import {GlobalInstance} from './types';
 
 export const GLOBAL = window as unknown as GlobalInstance;
 
-export const enum ComponentTypes {
+export enum ComponentTypes {
   App = 'app',
   Layout = 'layout',
   Page = 'page',
   Component = 'component',
 }
 
-export const enum LifecycleHooks {
+export enum LifecycleHooks {
   OnCreate = 'onCreate',
   OnInit = 'onInit',
   OnChanges = 'onChanges',
