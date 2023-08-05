@@ -18,6 +18,26 @@ interface GradientValues extends ColorValues {
   gradient: string;
 }
 
+export type ColorsWithoutDynamics = Exclude<
+  Colors,
+  | Colors.Dynamic
+  | Colors.DynamicContrast
+  | Colors.DynamicShade
+  | Colors.DynamicShade2
+  | Colors.DynamicShade3
+  | Colors.DynamicShade4
+  | Colors.DynamicShade5
+  | Colors.DynamicTint
+  | Colors.DynamicTint2
+  | Colors.DynamicTint3
+  | Colors.DynamicTint4
+  | Colors.DynamicTint5
+  | Colors.GradientDynamic
+  | Colors.GradientDynamicContrast
+  | Colors.GradientDynamicShade
+  | Colors.GradientDynamicTint
+>;
+
 const SIZES = [
   'xxxs',
   'xxs',
@@ -226,7 +246,7 @@ export enum Colors {
   DarkTint4 = 'dark-tint-4',
   DarkTint5 = 'dark-tint-5',
   GradientDynamic = 'gradient-dynamic',
-  GradientDynamicContrast = 'gradient-dynamic-constrast',
+  GradientDynamicContrast = 'gradient-dynamic-contrast',
   GradientDynamicShade = 'gradient-dynamic-shade',
   GradientDynamicTint = 'gradient-dynamic-tint',
   GradientPrimary = 'gradient-primary',
