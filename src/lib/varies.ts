@@ -1,6 +1,8 @@
-import {unsafeCSS, CSSResult} from 'lit';
+import {unsafeCSS} from 'lit';
 
-type SizeVaryHandler = (size: string) => string;
+type SizeVaryHandler = (size: Sizes) => string;
+type SizeFactorVaryHandler = (sizeFactor: SizeFactors) => string;
+type FontTypeVaryHandler = (fontType: FontTypes) => string;
 type ColorOrGradientVaryHandler<Values> = (values: Values) => string;
 type ColorOrGradientValuesBuilder = (
   id: string,
@@ -16,69 +18,18 @@ interface ColorValues {
 }
 interface GradientValues extends ColorValues {
   gradient: string;
+  gradientContrast: string;
 }
 
-export type ColorsWithoutDynamics = Exclude<
-  Colors,
-  | Colors.Dynamic
-  | Colors.DynamicContrast
-  | Colors.DynamicShade
-  | Colors.DynamicShade2
-  | Colors.DynamicShade3
-  | Colors.DynamicShade4
-  | Colors.DynamicShade5
-  | Colors.DynamicTint
-  | Colors.DynamicTint2
-  | Colors.DynamicTint3
-  | Colors.DynamicTint4
-  | Colors.DynamicTint5
-  | Colors.GradientDynamic
-  | Colors.GradientDynamicContrast
-  | Colors.GradientDynamicShade
-  | Colors.GradientDynamicTint
->;
-
-const SIZES = [
-  'xxxs',
-  'xxs',
-  'xs',
-  'ss',
-  'sm',
-  'md',
-  'ml',
-  'lg',
-  'sl',
-  'xl',
-  'xxl',
-  'xxxl',
-];
-const DYNAMIC_COLOR = 'dynamic';
-const COLORS = [
-  'primary',
-  'secondary',
-  'tertiary',
-  'success',
-  'warning',
-  'danger',
-  'dark',
-  'medium',
-  'light',
-];
-const COLOR_VARIES = ['contrast', 'shade', 'tint'];
-const COLOR_EXTRA_VARIES = [
-  'shade-2',
-  'shade-3',
-  'shade-4',
-  'shade-5',
-  'shade-6',
-  'shade-7',
-  'tint-2',
-  'tint-3',
-  'tint-4',
-  'tint-5',
-  'tint-6',
-  'tint-7',
-];
+export type SizeFactors = SizeBasicFactors | SizeExtraFactors;
+export type FontSizeFactors = SizeFactors;
+export type SpaceSizeFactors = SizeFactors;
+export type ColorsWithDynamics = Colors | ColorDynamics;
+export type GradientsWithDynamics = Gradients | GradientDynamics;
+export type ColorsAndGradients = Colors | Gradients;
+export type ColorsAndGradientsWithDynamics =
+  | ColorsWithDynamics
+  | GradientsWithDynamics;
 
 export enum Sizes {
   XXXS = 'xxxs',
@@ -94,7 +45,7 @@ export enum Sizes {
   XXL = 'xxl',
   XXXL = 'xxxl',
 }
-export enum Multipliers {
+export enum SizeBasicFactors {
   X0_1 = '0_1x',
   X0_2 = '0_2x',
   X0_25 = '0_25x',
@@ -113,6 +64,8 @@ export enum Multipliers {
   X3 = '3x',
   X4 = '4x',
   X5 = '5x',
+}
+export enum SizeExtraFactors {
   X6 = '6x',
   X7 = '7x',
   X8 = '8x',
@@ -124,19 +77,17 @@ export enum ColorVaries {
   Shade = 'shade',
   Tint = 'tint',
 }
+export enum ColorExtraVaries {
+  Shade2 = 'shade-2',
+  Shade3 = 'shade-3',
+  Shade4 = 'shade-4',
+  Shade5 = 'shade-5',
+  Tint2 = 'tint-2',
+  Tint3 = 'tint-3',
+  Tint4 = 'tint-4',
+  Tint5 = 'tint-5',
+}
 export enum Colors {
-  Dynamic = 'dynamic',
-  DynamicContrast = 'dynamic-contrast',
-  DynamicShade = 'dynamic-shade',
-  DynamicShade2 = 'dynamic-shade-2',
-  DynamicShade3 = 'dynamic-shade-3',
-  DynamicShade4 = 'dynamic-shade-4',
-  DynamicShade5 = 'dynamic-shade-5',
-  DynamicTint = 'dynamic-tint',
-  DynamicTint2 = 'dynamic-tint-2',
-  DynamicTint3 = 'dynamic-tint-3',
-  DynamicTint4 = 'dynamic-tint-4',
-  DynamicTint5 = 'dynamic-tint-5',
   Primary = 'primary',
   PrimaryContrast = 'primary-contrast',
   PrimaryShade = 'primary-shade',
@@ -209,30 +160,6 @@ export enum Colors {
   WarningTint3 = 'warning-tint-3',
   WarningTint4 = 'warning-tint-4',
   WarningTint5 = 'warning-tint-5',
-  Light = 'light',
-  LightContrast = 'light-contrast',
-  LightShade = 'light-shade',
-  LightShade2 = 'light-shade-2',
-  LightShade3 = 'light-shade-3',
-  LightShade4 = 'light-shade-4',
-  LightShade5 = 'light-shade-5',
-  LightTint = 'light-tint',
-  LightTint2 = 'light-tint-2',
-  LightTint3 = 'light-tint-3',
-  LightTint4 = 'light-tint-4',
-  LightTint5 = 'light-tint-5',
-  Medium = 'medium',
-  MediumContrast = 'medium-contrast',
-  MediumShade = 'medium-shade',
-  MediumShade2 = 'medium-shade-2',
-  MediumShade3 = 'medium-shade-3',
-  MediumShade4 = 'medium-shade-4',
-  MediumShade5 = 'medium-shade-5',
-  MediumTint = 'medium-tint',
-  MediumTint2 = 'medium-tint-2',
-  MediumTint3 = 'medium-tint-3',
-  MediumTint4 = 'medium-tint-4',
-  MediumTint5 = 'medium-tint-5',
   Dark = 'dark',
   DarkContrast = 'dark-contrast',
   DarkShade = 'dark-shade',
@@ -245,10 +172,82 @@ export enum Colors {
   DarkTint3 = 'dark-tint-3',
   DarkTint4 = 'dark-tint-4',
   DarkTint5 = 'dark-tint-5',
-  GradientDynamic = 'gradient-dynamic',
-  GradientDynamicContrast = 'gradient-dynamic-contrast',
-  GradientDynamicShade = 'gradient-dynamic-shade',
-  GradientDynamicTint = 'gradient-dynamic-tint',
+  Medium = 'medium',
+  MediumContrast = 'medium-contrast',
+  MediumShade = 'medium-shade',
+  MediumShade2 = 'medium-shade-2',
+  MediumShade3 = 'medium-shade-3',
+  MediumShade4 = 'medium-shade-4',
+  MediumShade5 = 'medium-shade-5',
+  MediumTint = 'medium-tint',
+  MediumTint2 = 'medium-tint-2',
+  MediumTint3 = 'medium-tint-3',
+  MediumTint4 = 'medium-tint-4',
+  MediumTint5 = 'medium-tint-5',
+  Light = 'light',
+  LightContrast = 'light-contrast',
+  LightShade = 'light-shade',
+  LightShade2 = 'light-shade-2',
+  LightShade3 = 'light-shade-3',
+  LightShade4 = 'light-shade-4',
+  LightShade5 = 'light-shade-5',
+  LightTint = 'light-tint',
+  LightTint2 = 'light-tint-2',
+  LightTint3 = 'light-tint-3',
+  LightTint4 = 'light-tint-4',
+  LightTint5 = 'light-tint-5',
+  Background = 'background',
+  BackgroundContrast = 'background-contrast',
+  BackgroundShade = 'background-shade',
+  BackgroundShade2 = 'background-shade-2',
+  BackgroundShade3 = 'background-shade-3',
+  BackgroundShade4 = 'background-shade-4',
+  BackgroundShade5 = 'background-shade-5',
+  BackgroundTint = 'background-tint',
+  BackgroundTint2 = 'background-tint-2',
+  BackgroundTint3 = 'background-tint-3',
+  BackgroundTint4 = 'background-tint-4',
+  BackgroundTint5 = 'background-tint-5',
+  Middleground = 'middleground',
+  MiddlegroundContrast = 'middleground-contrast',
+  MiddlegroundShade = 'middleground-shade',
+  MiddlegroundShade2 = 'middleground-shade-2',
+  MiddlegroundShade3 = 'middleground-shade-3',
+  MiddlegroundShade4 = 'middleground-shade-4',
+  MiddlegroundShade5 = 'middleground-shade-5',
+  MiddlegroundTint = 'middleground-tint',
+  MiddlegroundTint2 = 'middleground-tint-2',
+  MiddlegroundTint3 = 'middleground-tint-3',
+  MiddlegroundTint4 = 'middleground-tint-4',
+  MiddlegroundTint5 = 'middleground-tint-5',
+  Foreground = 'foreground',
+  ForegroundContrast = 'foreground-contrast',
+  ForegroundShade = 'foreground-shade',
+  ForegroundShade2 = 'foreground-shade-2',
+  ForegroundShade3 = 'foreground-shade-3',
+  ForegroundShade4 = 'foreground-shade-4',
+  ForegroundShade5 = 'foreground-shade-5',
+  ForegroundTint = 'foreground-tint',
+  ForegroundTint2 = 'foreground-tint-2',
+  ForegroundTint3 = 'foreground-tint-3',
+  ForegroundTint4 = 'foreground-tint-4',
+  ForegroundTint5 = 'foreground-tint-5',
+}
+export enum ColorDynamics {
+  Dynamic = 'dynamic',
+  DynamicContrast = 'dynamic-contrast',
+  DynamicShade = 'dynamic-shade',
+  DynamicShade2 = 'dynamic-shade-2',
+  DynamicShade3 = 'dynamic-shade-3',
+  DynamicShade4 = 'dynamic-shade-4',
+  DynamicShade5 = 'dynamic-shade-5',
+  DynamicTint = 'dynamic-tint',
+  DynamicTint2 = 'dynamic-tint-2',
+  DynamicTint3 = 'dynamic-tint-3',
+  DynamicTint4 = 'dynamic-tint-4',
+  DynamicTint5 = 'dynamic-tint-5',
+}
+export enum Gradients {
   GradientPrimary = 'gradient-primary',
   GradientPrimaryContrast = 'gradient-primary-contrast',
   GradientPrimaryShade = 'gradient-primary-shade',
@@ -285,7 +284,104 @@ export enum Colors {
   GradientLightContrast = 'gradient-light-contrast',
   GradientLightShade = 'gradient-light-shade',
   GradientLightTint = 'gradient-light-tint',
+  GradientBackground = 'gradient-background',
+  GradientBackgroundContrast = 'gradient-background-contrast',
+  GradientBackgroundShade = 'gradient-background-shade',
+  GradientBackgroundTint = 'gradient-background-tint',
+  GradientMiddleground = 'gradient-middleground',
+  GradientMiddlegroundContrast = 'gradient-middleground-contrast',
+  GradientMiddlegroundShade = 'gradient-middleground-shade',
+  GradientMiddlegroundTint = 'gradient-middleground-tint',
+  GradientForeground = 'gradient-foreground',
+  GradientForegroundContrast = 'gradient-foreground-contrast',
+  GradientForegroundShade = 'gradient-foreground-shade',
+  GradientForegroundTint = 'gradient-foreground-tint',
 }
+export enum GradientDynamics {
+  GradientDynamic = 'gradient-dynamic',
+  GradientDynamicContrast = 'gradient-dynamic-contrast',
+  GradientDynamicShade = 'gradient-dynamic-shade',
+  GradientDynamicTint = 'gradient-dynamic-tint',
+}
+export enum FontTypes {
+  Head = 'head',
+  Body = 'body',
+  Quote = 'quote',
+  Code = 'code',
+}
+
+const SIZES = [
+  Sizes.XXXS,
+  Sizes.XXS,
+  Sizes.XS,
+  Sizes.SS,
+  Sizes.SM,
+  Sizes.MD,
+  Sizes.ML,
+  Sizes.LG,
+  Sizes.SL,
+  Sizes.XL,
+  Sizes.XXL,
+  Sizes.XXXL,
+];
+const COLOR_DYNAMIC = ColorDynamics.Dynamic;
+const COLORS = [
+  Colors.Primary,
+  Colors.Secondary,
+  Colors.Tertiary,
+  Colors.Success,
+  Colors.Danger,
+  Colors.Warning,
+  Colors.Dark,
+  Colors.Medium,
+  Colors.Light,
+  Colors.Background,
+  Colors.Middleground,
+  Colors.Foreground,
+];
+const COLOR_VARIES = [
+  ColorVaries.Contrast,
+  ColorVaries.Shade,
+  ColorVaries.Tint,
+];
+const COLOR_EXTRA_VARIES = [
+  ColorExtraVaries.Shade2,
+  ColorExtraVaries.Shade3,
+  ColorExtraVaries.Shade4,
+  ColorExtraVaries.Shade5,
+  ColorExtraVaries.Tint2,
+  ColorExtraVaries.Tint3,
+  ColorExtraVaries.Tint4,
+  ColorExtraVaries.Tint5,
+];
+const BASIC_FACTORS = [
+  SizeBasicFactors.X0_1,
+  SizeBasicFactors.X0_2,
+  SizeBasicFactors.X0_25,
+  SizeBasicFactors.X0_3,
+  SizeBasicFactors.X0_4,
+  SizeBasicFactors.X0_5,
+  SizeBasicFactors.X0_6,
+  SizeBasicFactors.X0_7,
+  SizeBasicFactors.X0_75,
+  SizeBasicFactors.X0_8,
+  SizeBasicFactors.X0_9,
+  SizeBasicFactors.X1_25,
+  SizeBasicFactors.X1_5,
+  SizeBasicFactors.X1_75,
+  SizeBasicFactors.X2,
+  SizeBasicFactors.X3,
+  SizeBasicFactors.X4,
+  SizeBasicFactors.X5,
+];
+const EXTRA_FACTORS = [
+  SizeExtraFactors.X6,
+  SizeExtraFactors.X7,
+  SizeExtraFactors.X8,
+  SizeExtraFactors.X9,
+  SizeExtraFactors.X10,
+];
+const FONT_TYPES = [FontTypes.Head, FontTypes.Body, FontTypes.Quote, FontTypes.Code];
 
 function colorOrGradientVaries(
   colors: string[],
@@ -293,16 +389,17 @@ function colorOrGradientVaries(
   handler: ColorOrGradientVaryHandler<any>,
   valueBuilder: ColorOrGradientValuesBuilder
 ) {
-  return colors
-    .map(id => varies.map(vary => handler(valueBuilder(id, vary))).join(''))
-    .join('');
+  return unsafeCSS(
+    colors
+      .map(id => varies.map(vary => handler(valueBuilder(id, vary))).join(''))
+      .join('')
+  );
 }
 export function generateColorDynamic(
-  handler: ColorOrGradientVaryHandler<ColorValues>,
-  toString?: true
+  handler: ColorOrGradientVaryHandler<ColorValues>
 ) {
-  const data = colorOrGradientVaries(
-    [DYNAMIC_COLOR],
+  return colorOrGradientVaries(
+    [COLOR_DYNAMIC],
     ['', ...COLOR_VARIES, ...COLOR_EXTRA_VARIES],
     handler,
     (id, vary): ColorValues => {
@@ -324,13 +421,11 @@ export function generateColorDynamic(
       };
     }
   );
-  return (toString ? data : unsafeCSS(data)) as CSSResult;
 }
 export function generateColorVaries(
-  handler: ColorOrGradientVaryHandler<ColorValues>,
-  toString?: true
+  handler: ColorOrGradientVaryHandler<ColorValues>
 ) {
-  const data = colorOrGradientVaries(
+  return colorOrGradientVaries(
     COLORS,
     ['', ...COLOR_VARIES, ...COLOR_EXTRA_VARIES],
     handler,
@@ -353,90 +448,111 @@ export function generateColorVaries(
       };
     }
   );
-  return (toString ? data : unsafeCSS(data)) as CSSResult;
 }
 export function generateColorDynamicAndVaries(
-  handler: ColorOrGradientVaryHandler<ColorValues>,
-  toString?: true
+  handler: ColorOrGradientVaryHandler<ColorValues>
 ) {
-  const dynamic = generateColorDynamic(handler, true) as unknown as string;
-  const varies = generateColorVaries(handler, true) as unknown as string;
-  const data = dynamic + varies;
-  return (toString ? data : unsafeCSS(data)) as CSSResult;
+  const dynamic = generateColorDynamic(handler).toString();
+  const varies = generateColorVaries(handler).toString();
+  return unsafeCSS(dynamic + varies);
 }
 export function generateGradientDynamic(
-  handler: ColorOrGradientVaryHandler<GradientValues>,
-  toString?: true
+  handler: ColorOrGradientVaryHandler<GradientValues>
 ) {
-  const data = colorOrGradientVaries(
-    [DYNAMIC_COLOR],
+  return colorOrGradientVaries(
+    [COLOR_DYNAMIC],
     ['', ...COLOR_VARIES],
     handler,
     (id, vary): GradientValues => {
       const suffix = !vary ? '' : `-${vary}`;
       const name = id + suffix;
-      const gradient = `var(--gradient-foreground${suffix})`;
       const color = `var(--color-foreground${suffix})`;
       const contrast = `var(${
         vary === ColorVaries.Contrast
           ? '--color-foreground'
           : '--color-background'
       })`;
-      return {
-        id,
-        vary,
-        suffix,
-        name,
-        gradient,
-        color,
-        contrast,
-      };
-    }
-  );
-  return (toString ? data : unsafeCSS(data)) as CSSResult;
-}
-export function generateGradientVaries(
-  handler: ColorOrGradientVaryHandler<GradientValues>,
-  toString?: true
-) {
-  const data = colorOrGradientVaries(
-    COLORS,
-    ['', ...COLOR_VARIES],
-    handler,
-    (id, vary): GradientValues => {
-      const suffix = !vary ? '' : `-${vary}`;
-      const name = id + suffix;
-      const gradient = `var(--gradient-${name})`;
-      const color = `var(--color-${name})`;
-      const contrast = `var(${
+      const gradient = `var(--gradient-foreground${suffix})`;
+      const gradientContrast = `var(${
         vary === ColorVaries.Contrast
-          ? `--color-${id}`
-          : `--color-${id}-contrast`
+          ? '--gradient-foreground'
+          : '--gradient-background'
       })`;
       return {
         id,
         vary,
         suffix,
         name,
-        gradient,
         color,
         contrast,
+        gradient,
+        gradientContrast,
       };
     }
   );
-  return (toString ? data : unsafeCSS(data)) as CSSResult;
+}
+export function generateGradientVaries(
+  handler: ColorOrGradientVaryHandler<GradientValues>
+) {
+  return colorOrGradientVaries(
+    COLORS,
+    ['', ...COLOR_VARIES],
+    handler,
+    (id, vary): GradientValues => {
+      const suffix = !vary ? '' : `-${vary}`;
+      const name = id + suffix;
+      const color = `var(--color-${name})`;
+      const contrast = `var(${
+        vary === ColorVaries.Contrast
+          ? `--color-${id}`
+          : `--color-${id}-contrast`
+      })`;
+      const gradient = `var(--gradient-${name})`;
+      const gradientContrast = `var(${
+        vary === ColorVaries.Contrast
+          ? `--gradient-${id}`
+          : `--gradient-${id}-contrast`
+      })`;
+      return {
+        id,
+        vary,
+        suffix,
+        name,
+        color,
+        contrast,
+        gradient,
+        gradientContrast,
+      };
+    }
+  );
 }
 export function generateGradientDynamicAndVaries(
-  handler: ColorOrGradientVaryHandler<GradientValues>,
-  toString?: true
+  handler: ColorOrGradientVaryHandler<GradientValues>
 ) {
-  const dynamic = generateGradientDynamic(handler, true) as unknown as string;
-  const varies = generateGradientVaries(handler, true) as unknown as string;
-  const data = dynamic + varies;
-  return (toString ? data : unsafeCSS(data)) as CSSResult;
+  const dynamic = generateGradientDynamic(handler).toString();
+  const varies = generateGradientVaries(handler).toString();
+  return unsafeCSS(dynamic + varies);
 }
 
-export function generateSizeVaries(handler: SizeVaryHandler, toString?: true) {
-  const data = SIZES.map(size => handler(size)).join('');
-  return (toString ? data : unsafeCSS(data)) as CSSResult;
+export function generateSizeVaries(handler: SizeVaryHandler) {
+  return unsafeCSS(SIZES.map(size => handler(size)).join(''));
+}
+
+function factorVaries(handler: SizeFactorVaryHandler) {
+  return unsafeCSS(
+    [...BASIC_FACTORS, ...EXTRA_FACTORS].map(factor => handler(factor)).join('')
+  );
+}
+export function generateBasicFactorVaries(handler: SizeFactorVaryHandler) {
+  return unsafeCSS(BASIC_FACTORS.map(sizeFactor => handler(sizeFactor)).join(''));
+}
+export function generateSpaceVaries(handler: SizeFactorVaryHandler) {
+  return factorVaries(handler);
+}
+
+export function generateFontTypeVaries(handler: FontTypeVaryHandler) {
+  return unsafeCSS(FONT_TYPES.map(fontType => handler(fontType)).join(''));
+}
+export function generateFontSizeVaries(handler: SizeFactorVaryHandler) {
+  return factorVaries(handler);
 }
