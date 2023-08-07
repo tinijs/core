@@ -10,6 +10,7 @@ import {
   DependencyDef,
   DependencyProvider,
   ObserverCallback,
+  UseComponentsList,
   ThemingOptions,
 } from './types';
 import {
@@ -33,7 +34,7 @@ import {Observer} from './observable';
 
 import ___checkForDIMissingDependencies from './di-checker';
 
-export function Components(items: Record<string, CustomElementConstructor>) {
+export function Components(items: UseComponentsList) {
   return function (target: any) {
     useComponents(items);
     return target;
@@ -140,8 +141,9 @@ export function App(options: AppOptions = {}) {
     );
     // create app
     class result extends target {
-      $options = GLOBAL.$tiniAppOptions;
-      componentType = ComponentTypes.App;
+      readonly constructorName = target.name;
+      readonly $options = GLOBAL.$tiniAppOptions;
+      readonly componentType = ComponentTypes.App;
     }
     // load the registry
     const dependencyRegistry = getDIRegistry();
@@ -208,7 +210,8 @@ export function Component<Themes extends string>(
   if (options.components) useComponents(options.components);
   return function (target: any) {
     class result extends target {
-      componentType = options.type || ComponentTypes.Component;
+      readonly constructorName = target.name;
+      readonly componentType = options.type || ComponentTypes.Component;
     }
     if (options.theming) Theming(options.theming)(result);
     return !options.name ? result : customElement(options.name)(result as any);

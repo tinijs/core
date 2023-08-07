@@ -11,6 +11,7 @@ import {
   TiniLifecycleHook,
   GlobalLifecycleHook,
   AppSplashscreenComponent,
+  UseComponentsList,
   ThemingOptions,
 } from './types';
 
@@ -135,11 +136,14 @@ export function stylingWithBases<Themes extends string>(
   return styling as NonNullable<ThemingOptions<Themes>['styling']>;
 }
 
-export function useComponents(items: Record<string, CustomElementConstructor>) {
-  Object.keys(items).forEach(tagName => {
+export function useComponents(items: UseComponentsList) {
+  items.forEach(item => {
+    const [constructor, tagName] =
+      item instanceof Array ? item : [item, (item as any).defaultTagName];
+    if (!tagName || !constructor) return;
     const isDefined = customElements.get(tagName);
     if (!isDefined) {
-      customElements.define(tagName, items[tagName]);
+      customElements.define(tagName, constructor);
     }
   });
 }

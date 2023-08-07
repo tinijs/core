@@ -3,6 +3,7 @@ import {unsafeCSS} from 'lit';
 type SizeVaryHandler = (size: Sizes) => string;
 type SizeFactorVaryHandler = (sizeFactor: SizeFactors) => string;
 type FontTypeVaryHandler = (fontType: FontTypes) => string;
+type JustifyVaryHandler = (justify: JustifyContents) => string;
 type ColorOrGradientVaryHandler<Values> = (values: Values) => string;
 type ColorOrGradientValuesBuilder = (
   id: string,
@@ -52,6 +53,7 @@ export enum SizeBasicFactors {
   X0_75 = '0_75x',
   X0_8 = '0_8x',
   X0_9 = '0_9x',
+  X1 = '1x',
   X1_25 = '1_25x',
   X1_5 = '1_5x',
   X1_75 = '1_75x',
@@ -284,6 +286,14 @@ export enum FontTypes {
   Quote = 'quote',
   Code = 'code',
 }
+export enum JustifyContents {
+  Center = 'center',
+  Left = 'left',
+  Right = 'right',
+  SpaceBetween = 'space-between',
+  SpaceEvenly = 'space-evenly',
+  SpaceAround = 'space-around',
+}
 
 const SIZES = [
   Sizes.XXXS,
@@ -360,6 +370,14 @@ const FONT_TYPES = [
   FontTypes.Body,
   FontTypes.Quote,
   FontTypes.Code,
+];
+const JUSTIFY_CONTENTS = [
+  JustifyContents.Center,
+  JustifyContents.Left,
+  JustifyContents.Right,
+  JustifyContents.SpaceBetween,
+  JustifyContents.SpaceEvenly,
+  JustifyContents.SpaceAround,
 ];
 
 function colorOrGradientVaries(
@@ -460,4 +478,8 @@ export function generateFontTypeVaries(handler: FontTypeVaryHandler) {
 }
 export function generateFontSizeVaries(handler: SizeFactorVaryHandler) {
   return factorVaries(handler);
+}
+
+export function generateJustifyVaries(handler: JustifyVaryHandler) {
+  return unsafeCSS(JUSTIFY_CONTENTS.map(justify => handler(justify)).join(''));
 }

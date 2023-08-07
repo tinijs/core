@@ -8,10 +8,14 @@ export interface AppOptions {
   navIndicator?: boolean;
 }
 
+export type UseComponentsList = Array<
+  CustomElementConstructor | [CustomElementConstructor, string]
+>;
+
 export interface ComponentOptions<Themes extends string> {
   name?: string;
   type?: ComponentTypes;
-  components?: Record<string, CustomElementConstructor>;
+  components?: UseComponentsList;
   theming?: ThemingOptions<Themes>;
 }
 
