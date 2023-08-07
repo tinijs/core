@@ -24,12 +24,7 @@ interface GradientValues extends ColorValues {
 export type SizeFactors = SizeBasicFactors | SizeExtraFactors;
 export type FontSizeFactors = SizeFactors;
 export type SpaceSizeFactors = SizeFactors;
-export type ColorsWithDynamics = Colors | ColorDynamics;
-export type GradientsWithDynamics = Gradients | GradientDynamics;
 export type ColorsAndGradients = Colors | Gradients;
-export type ColorsAndGradientsWithDynamics =
-  | ColorsWithDynamics
-  | GradientsWithDynamics;
 
 export enum Sizes {
   XXXS = 'xxxs',
@@ -233,20 +228,6 @@ export enum Colors {
   ForegroundTint4 = 'foreground-tint-4',
   ForegroundTint5 = 'foreground-tint-5',
 }
-export enum ColorDynamics {
-  Dynamic = 'dynamic',
-  DynamicContrast = 'dynamic-contrast',
-  DynamicShade = 'dynamic-shade',
-  DynamicShade2 = 'dynamic-shade-2',
-  DynamicShade3 = 'dynamic-shade-3',
-  DynamicShade4 = 'dynamic-shade-4',
-  DynamicShade5 = 'dynamic-shade-5',
-  DynamicTint = 'dynamic-tint',
-  DynamicTint2 = 'dynamic-tint-2',
-  DynamicTint3 = 'dynamic-tint-3',
-  DynamicTint4 = 'dynamic-tint-4',
-  DynamicTint5 = 'dynamic-tint-5',
-}
 export enum Gradients {
   GradientPrimary = 'gradient-primary',
   GradientPrimaryContrast = 'gradient-primary-contrast',
@@ -297,12 +278,6 @@ export enum Gradients {
   GradientForegroundShade = 'gradient-foreground-shade',
   GradientForegroundTint = 'gradient-foreground-tint',
 }
-export enum GradientDynamics {
-  GradientDynamic = 'gradient-dynamic',
-  GradientDynamicContrast = 'gradient-dynamic-contrast',
-  GradientDynamicShade = 'gradient-dynamic-shade',
-  GradientDynamicTint = 'gradient-dynamic-tint',
-}
 export enum FontTypes {
   Head = 'head',
   Body = 'body',
@@ -324,7 +299,6 @@ const SIZES = [
   Sizes.XXL,
   Sizes.XXXL,
 ];
-const COLOR_DYNAMIC = ColorDynamics.Dynamic;
 const COLORS = [
   Colors.Primary,
   Colors.Secondary,
@@ -381,7 +355,12 @@ const EXTRA_FACTORS = [
   SizeExtraFactors.X9,
   SizeExtraFactors.X10,
 ];
-const FONT_TYPES = [FontTypes.Head, FontTypes.Body, FontTypes.Quote, FontTypes.Code];
+const FONT_TYPES = [
+  FontTypes.Head,
+  FontTypes.Body,
+  FontTypes.Quote,
+  FontTypes.Code,
+];
 
 function colorOrGradientVaries(
   colors: string[],
@@ -393,33 +372,6 @@ function colorOrGradientVaries(
     colors
       .map(id => varies.map(vary => handler(valueBuilder(id, vary))).join(''))
       .join('')
-  );
-}
-export function generateColorDynamic(
-  handler: ColorOrGradientVaryHandler<ColorValues>
-) {
-  return colorOrGradientVaries(
-    [COLOR_DYNAMIC],
-    ['', ...COLOR_VARIES, ...COLOR_EXTRA_VARIES],
-    handler,
-    (id, vary): ColorValues => {
-      const suffix = !vary ? '' : `-${vary}`;
-      const name = id + suffix;
-      const color = `var(--color-foreground${suffix})`;
-      const contrast = `var(${
-        vary === ColorVaries.Contrast
-          ? '--color-foreground'
-          : '--color-background'
-      })`;
-      return {
-        id,
-        vary,
-        suffix,
-        name,
-        color,
-        contrast,
-      };
-    }
   );
 }
 export function generateColorVaries(
@@ -445,48 +397,6 @@ export function generateColorVaries(
         name,
         color,
         contrast,
-      };
-    }
-  );
-}
-export function generateColorDynamicAndVaries(
-  handler: ColorOrGradientVaryHandler<ColorValues>
-) {
-  const dynamic = generateColorDynamic(handler).toString();
-  const varies = generateColorVaries(handler).toString();
-  return unsafeCSS(dynamic + varies);
-}
-export function generateGradientDynamic(
-  handler: ColorOrGradientVaryHandler<GradientValues>
-) {
-  return colorOrGradientVaries(
-    [COLOR_DYNAMIC],
-    ['', ...COLOR_VARIES],
-    handler,
-    (id, vary): GradientValues => {
-      const suffix = !vary ? '' : `-${vary}`;
-      const name = id + suffix;
-      const color = `var(--color-foreground${suffix})`;
-      const contrast = `var(${
-        vary === ColorVaries.Contrast
-          ? '--color-foreground'
-          : '--color-background'
-      })`;
-      const gradient = `var(--gradient-foreground${suffix})`;
-      const gradientContrast = `var(${
-        vary === ColorVaries.Contrast
-          ? '--gradient-foreground'
-          : '--gradient-background'
-      })`;
-      return {
-        id,
-        vary,
-        suffix,
-        name,
-        color,
-        contrast,
-        gradient,
-        gradientContrast,
       };
     }
   );
@@ -526,13 +436,6 @@ export function generateGradientVaries(
     }
   );
 }
-export function generateGradientDynamicAndVaries(
-  handler: ColorOrGradientVaryHandler<GradientValues>
-) {
-  const dynamic = generateGradientDynamic(handler).toString();
-  const varies = generateGradientVaries(handler).toString();
-  return unsafeCSS(dynamic + varies);
-}
 
 export function generateSizeVaries(handler: SizeVaryHandler) {
   return unsafeCSS(SIZES.map(size => handler(size)).join(''));
@@ -544,7 +447,9 @@ function factorVaries(handler: SizeFactorVaryHandler) {
   );
 }
 export function generateBasicFactorVaries(handler: SizeFactorVaryHandler) {
-  return unsafeCSS(BASIC_FACTORS.map(sizeFactor => handler(sizeFactor)).join(''));
+  return unsafeCSS(
+    BASIC_FACTORS.map(sizeFactor => handler(sizeFactor)).join('')
+  );
 }
 export function generateSpaceVaries(handler: SizeFactorVaryHandler) {
   return factorVaries(handler);
