@@ -10,46 +10,57 @@ To manually install the module: `npm i @tinijs/core`
 
 It is recommended to download the [Skeleton](https://github.com/tinijs/skeleton) for a ready-to-use structured project.
 
-For more, please visit: <https://tinijs.dev>
+For more, please visit: <https://tinijs.dev> (TODO)
 
 ## Usage
 
-- Create an `app`
+- Create an `app` (ex. [app.ts](https://github.com/tinijs/skeleton/blob/main/app/app.ts)):
 
 ```ts
-import {TiniComponent, App, APP_ROOT_TEMPLATE, html} from '@tinijs/core';
+import {TiniComponent, App, html} from '@tinijs/core';
 
 @App()
 export class AppRoot extends TiniComponent {
-  protected template = html`${APP_ROOT_TEMPLATE}`;
+  protected render() {
+    return html`...`;
+  }
 }
 ```
 
-- Create a `component`
+- Create a `component`:
 
 ```ts
 import {TiniComponent, Component, Input, html} from '@tinijs/core';
 
-@Component('app-hello')
-export class AppHello extends TiniComponent {
+export const APP_HELLO = 'app-hello';
+@Component()
+export class AppHelloComponent extends TiniComponent {
+  static readonly defaultTagName = APP_HELLO;
+
   @Input() name!: string;
-  protected template = html`<h1>Hello world! 👋</h1>`;
+
+  protected render() {
+    return html`<h1>Hello ${this.name}! 👋</h1>`;
+  }
 }
 ```
 
-- Create a `page`
+- Create a `page`:
 
 ```ts
-import {TiniComponent, Page, Inject, html} from '@tinijs/core';
+import {TiniComponent, Page, html} from '@tinijs/core';
 
-@Page('page-404')
-export class Page404 extends TiniComponent {
-  @Inject() myService!: MyService;
-  protected template = html`<h1>Oops 🫣!</h1>`;
+@Page({
+  name: 'app-page-404'
+})
+export class AppPage404 extends TiniComponent {
+  protected render() {
+    return html`<h1>Oops 🫣!</h1>`;
+  }
 }
 ```
 
-For more detail, please visit the docs: <https://tinijs.dev/docs>
+For more detail, please visit the docs: <https://tinijs.dev/docs> (TODO)
 
 ## API
 
