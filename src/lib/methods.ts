@@ -118,13 +118,16 @@ export function stylingWithBases<Themes extends string>(
   additionalStyling?: Record<Themes, CSSResult[]>
 ) {
   // bases
-  const styling = bases.reduce((result, item) => {
-    Object.keys(item).forEach(key => {
-      result[key] ||= [];
-      result[key].push(item[key as Themes]);
-    });
-    return result;
-  }, {} as Record<string, CSSResult[]>);
+  const styling = bases.reduce(
+    (result, item) => {
+      Object.keys(item).forEach(key => {
+        result[key] ||= [];
+        result[key].push(item[key as Themes]);
+      });
+      return result;
+    },
+    {} as Record<string, CSSResult[]>
+  );
   // more
   if (additionalStyling) {
     Object.keys(additionalStyling).forEach(key => {

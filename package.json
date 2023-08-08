@@ -17,13 +17,10 @@
     "react",
     "svelte",
     "!**/*.ts",
-    "**/*.d.ts",
-    "auto-imports.json"
+    "**/*.d.ts"
   ],
   "scripts": {
-    "compile": "tsc",
-    "build": "npm run compile",
-    "deploy": "npm run build && npm publish",
+    "build": "tsc",
     "lint": "gts lint",
     "fix": "gts fix"
   },
@@ -52,8 +49,8 @@
     "lit": "^3.0.0-pre.0"
   },
   "devDependencies": {
-    "@types/node": "^20.4.4",
-    "gts": "^4.0.1",
+    "@types/node": "^20.4.8",
+    "gts": "^5.0.0",
     "typescript": "~5.1.6"
   }
 }
