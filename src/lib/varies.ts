@@ -1,23 +1,17 @@
 import {unsafeCSS} from 'lit';
 
-type SizeVaryHandler = (size: Sizes) => string;
-type SizeFactorVaryHandler = (sizeFactor: SizeFactors) => string;
-type FontTypeVaryHandler = (fontType: FontTypes) => string;
-type JustifyVaryHandler = (justify: JustifyContents) => string;
-type ColorOrGradientVaryHandler<Values> = (values: Values) => string;
-type ColorOrGradientValuesBuilder = (
-  id: string,
-  vary: string
-) => Record<string, any>;
-interface ColorValues {
-  id: string;
-  vary: string;
-  suffix: string;
+type SizeVaryRender = (size: Sizes) => string;
+type SizeFactorVaryRender = (sizeFactor: SizeFactors) => string;
+type FontTypeVaryRender = (fontType: FontTypes) => string;
+type JustifyVaryRender = (justify: JustifyContents) => string;
+type ColorOrGradientVaryRender<Values> = (values: Values) => string;
+interface ColorRenderValues {
+  baseName: string;
   name: string;
   color: string;
   contrast: string;
 }
-interface GradientValues extends ColorValues {
+interface GradientRenderValues extends ColorRenderValues {
   gradient: string;
   gradientContrast: string;
 }
@@ -41,6 +35,8 @@ export enum Sizes {
   XXL = 'xxl',
   XXXL = 'xxxl',
 }
+export const SIZES = Object.values(Sizes);
+
 export enum SizeBasicFactors {
   X0_1 = '0_1x',
   X0_2 = '0_2x',
@@ -62,6 +58,8 @@ export enum SizeBasicFactors {
   X4 = '4x',
   X5 = '5x',
 }
+export const BASIC_FACTORS = Object.values(SizeBasicFactors);
+
 export enum SizeExtraFactors {
   X6 = '6x',
   X7 = '7x',
@@ -69,21 +67,8 @@ export enum SizeExtraFactors {
   X9 = '9x',
   X10 = '10x',
 }
-export enum ColorVaries {
-  Contrast = 'contrast',
-  Shade = 'shade',
-  Tint = 'tint',
-}
-export enum ColorExtraVaries {
-  Shade2 = 'shade-2',
-  Shade3 = 'shade-3',
-  Shade4 = 'shade-4',
-  Shade5 = 'shade-5',
-  Tint2 = 'tint-2',
-  Tint3 = 'tint-3',
-  Tint4 = 'tint-4',
-  Tint5 = 'tint-5',
-}
+export const EXTRA_FACTORS = Object.values(SizeExtraFactors);
+
 export enum Colors {
   Primary = 'primary',
   PrimaryContrast = 'primary-contrast',
@@ -230,6 +215,9 @@ export enum Colors {
   ForegroundTint4 = 'foreground-tint-4',
   ForegroundTint5 = 'foreground-tint-5',
 }
+export const COLORS = Object.values(Colors);
+export const BASE_COLORS = COLORS.filter(item => !~item.indexOf('-'));
+
 export enum Gradients {
   GradientPrimary = 'gradient-primary',
   GradientPrimaryContrast = 'gradient-primary-contrast',
@@ -280,12 +268,19 @@ export enum Gradients {
   GradientForegroundShade = 'gradient-foreground-shade',
   GradientForegroundTint = 'gradient-foreground-tint',
 }
+export const GRADIENTS = Object.values(Gradients);
+export const BASE_GRADIENTS = GRADIENTS.filter(
+  item => !~item.replace('gradient-', '').indexOf('-')
+);
+
 export enum FontTypes {
   Head = 'head',
   Body = 'body',
   Quote = 'quote',
   Code = 'code',
 }
+export const FONT_TYPES = Object.values(FontTypes);
+
 export enum JustifyContents {
   Center = 'center',
   Left = 'left',
@@ -294,192 +289,84 @@ export enum JustifyContents {
   SpaceEvenly = 'space-evenly',
   SpaceAround = 'space-around',
 }
+export const JUSTIFY_CONTENTS = Object.values(JustifyContents);
 
-const SIZES = [
-  Sizes.XXXS,
-  Sizes.XXS,
-  Sizes.XS,
-  Sizes.SS,
-  Sizes.SM,
-  Sizes.MD,
-  Sizes.ML,
-  Sizes.LG,
-  Sizes.SL,
-  Sizes.XL,
-  Sizes.XXL,
-  Sizes.XXXL,
-];
-const COLORS = [
-  Colors.Primary,
-  Colors.Secondary,
-  Colors.Tertiary,
-  Colors.Success,
-  Colors.Danger,
-  Colors.Warning,
-  Colors.Dark,
-  Colors.Medium,
-  Colors.Light,
-  Colors.Background,
-  Colors.Middleground,
-  Colors.Foreground,
-];
-const COLOR_VARIES = [
-  ColorVaries.Contrast,
-  ColorVaries.Shade,
-  ColorVaries.Tint,
-];
-const COLOR_EXTRA_VARIES = [
-  ColorExtraVaries.Shade2,
-  ColorExtraVaries.Shade3,
-  ColorExtraVaries.Shade4,
-  ColorExtraVaries.Shade5,
-  ColorExtraVaries.Tint2,
-  ColorExtraVaries.Tint3,
-  ColorExtraVaries.Tint4,
-  ColorExtraVaries.Tint5,
-];
-const BASIC_FACTORS = [
-  SizeBasicFactors.X0_1,
-  SizeBasicFactors.X0_2,
-  SizeBasicFactors.X0_25,
-  SizeBasicFactors.X0_3,
-  SizeBasicFactors.X0_4,
-  SizeBasicFactors.X0_5,
-  SizeBasicFactors.X0_6,
-  SizeBasicFactors.X0_7,
-  SizeBasicFactors.X0_75,
-  SizeBasicFactors.X0_8,
-  SizeBasicFactors.X0_9,
-  SizeBasicFactors.X1_25,
-  SizeBasicFactors.X1_5,
-  SizeBasicFactors.X1_75,
-  SizeBasicFactors.X2,
-  SizeBasicFactors.X3,
-  SizeBasicFactors.X4,
-  SizeBasicFactors.X5,
-];
-const EXTRA_FACTORS = [
-  SizeExtraFactors.X6,
-  SizeExtraFactors.X7,
-  SizeExtraFactors.X8,
-  SizeExtraFactors.X9,
-  SizeExtraFactors.X10,
-];
-const FONT_TYPES = [
-  FontTypes.Head,
-  FontTypes.Body,
-  FontTypes.Quote,
-  FontTypes.Code,
-];
-const JUSTIFY_CONTENTS = [
-  JustifyContents.Center,
-  JustifyContents.Left,
-  JustifyContents.Right,
-  JustifyContents.SpaceBetween,
-  JustifyContents.SpaceEvenly,
-  JustifyContents.SpaceAround,
-];
-
-function colorOrGradientVaries(
-  colors: string[],
-  varies: string[],
-  handler: ColorOrGradientVaryHandler<any>,
-  valueBuilder: ColorOrGradientValuesBuilder
+export function generateColorVaries(
+  render: ColorOrGradientVaryRender<ColorRenderValues>
 ) {
   return unsafeCSS(
-    colors
-      .map(id => varies.map(vary => handler(valueBuilder(id, vary))).join(''))
-      .join('')
-  );
-}
-export function generateColorVaries(
-  handler: ColorOrGradientVaryHandler<ColorValues>
-) {
-  return colorOrGradientVaries(
-    COLORS,
-    ['', ...COLOR_VARIES, ...COLOR_EXTRA_VARIES],
-    handler,
-    (id, vary): ColorValues => {
-      const suffix = !vary ? '' : `-${vary}`;
-      const name = id + suffix;
+    COLORS.map(name => {
+      const baseName = name.split('-')[0];
+      const isContrast = ~name.indexOf('-contrast');
+      // colors
       const color = `var(--color-${name})`;
       const contrast = `var(${
-        vary === ColorVaries.Contrast
-          ? `--color-${id}`
-          : `--color-${id}-contrast`
+        isContrast ? `--color-${baseName}` : `--color-${baseName}-contrast`
       })`;
-      return {
-        id,
-        vary,
-        suffix,
+      // render
+      return render({
+        baseName,
         name,
         color,
         contrast,
-      };
-    }
+      });
+    }).join('')
   );
 }
 export function generateGradientVaries(
-  handler: ColorOrGradientVaryHandler<GradientValues>
+  render: ColorOrGradientVaryRender<GradientRenderValues>
 ) {
-  return colorOrGradientVaries(
-    COLORS,
-    ['', ...COLOR_VARIES],
-    handler,
-    (id, vary): GradientValues => {
-      const suffix = !vary ? '' : `-${vary}`;
-      const name = id + suffix;
-      const color = `var(--color-${name})`;
+  return unsafeCSS(
+    GRADIENTS.map(name => {
+      const baseName = name.split('-')[1];
+      const isContrast = ~name.indexOf('-contrast');
+      // colors
+      const color = `var(--color-${name.replace('gradient-', '')})`;
       const contrast = `var(${
-        vary === ColorVaries.Contrast
-          ? `--color-${id}`
-          : `--color-${id}-contrast`
+        isContrast ? `--color-${baseName}` : `--color-${baseName}-contrast`
       })`;
-      const gradient = `var(--gradient-${name})`;
+      // gradients
+      const gradient = `var(--${name})`;
       const gradientContrast = `var(${
-        vary === ColorVaries.Contrast
-          ? `--gradient-${id}`
-          : `--gradient-${id}-contrast`
+        isContrast ? `--${name}` : `--${name}-contrast`
       })`;
-      return {
-        id,
-        vary,
-        suffix,
+      // render
+      return render({
+        baseName,
         name,
         color,
         contrast,
         gradient,
         gradientContrast,
-      };
-    }
+      });
+    }).join('')
   );
 }
 
-export function generateSizeVaries(handler: SizeVaryHandler) {
-  return unsafeCSS(SIZES.map(size => handler(size)).join(''));
+export function generateSizeVaries(render: SizeVaryRender) {
+  return unsafeCSS(SIZES.map(size => render(size)).join(''));
 }
 
-function factorVaries(handler: SizeFactorVaryHandler) {
+export function generateBasicFactorVaries(render: SizeFactorVaryRender) {
   return unsafeCSS(
-    [...BASIC_FACTORS, ...EXTRA_FACTORS].map(factor => handler(factor)).join('')
+    BASIC_FACTORS.map(sizeFactor => render(sizeFactor)).join('')
   );
 }
-export function generateBasicFactorVaries(handler: SizeFactorVaryHandler) {
+export function generateSpaceVaries(render: SizeFactorVaryRender) {
   return unsafeCSS(
-    BASIC_FACTORS.map(sizeFactor => handler(sizeFactor)).join('')
+    [...BASIC_FACTORS, ...EXTRA_FACTORS].map(factor => render(factor)).join('')
   );
 }
-export function generateSpaceVaries(handler: SizeFactorVaryHandler) {
-  return factorVaries(handler);
+
+export function generateFontTypeVaries(render: FontTypeVaryRender) {
+  return unsafeCSS(FONT_TYPES.map(fontType => render(fontType)).join(''));
+}
+export function generateFontSizeVaries(render: SizeFactorVaryRender) {
+  return unsafeCSS(
+    [...BASIC_FACTORS, ...EXTRA_FACTORS].map(factor => render(factor)).join('')
+  );
 }
 
-export function generateFontTypeVaries(handler: FontTypeVaryHandler) {
-  return unsafeCSS(FONT_TYPES.map(fontType => handler(fontType)).join(''));
-}
-export function generateFontSizeVaries(handler: SizeFactorVaryHandler) {
-  return factorVaries(handler);
-}
-
-export function generateJustifyVaries(handler: JustifyVaryHandler) {
-  return unsafeCSS(JUSTIFY_CONTENTS.map(justify => handler(justify)).join(''));
+export function generateJustifyVaries(render: JustifyVaryRender) {
+  return unsafeCSS(JUSTIFY_CONTENTS.map(justify => render(justify)).join(''));
 }
