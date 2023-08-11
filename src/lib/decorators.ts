@@ -52,16 +52,16 @@ export function Theming<Themes extends string>({
     const originalUpdated = target.prototype.updated;
     // styles
     const unsubscribeKey = Symbol();
-    const applyStyles = (host: any, soulName?: Themes) => {
-      soulName ||= document.body.dataset.theme?.split('/')[0] as Themes;
+    const applyStyles = (host: any, soulId?: Themes) => {
+      soulId ||= document.body.dataset.theme?.split('/')[0] as Themes;
       // retrieve styles
       const originalStyles = target.styles || [];
       const styles = (
         !styling
           ? []
-          : !soulName || !styling[soulName]
+          : !soulId || !styling[soulId]
           ? Object.values(styling)[0]
-          : (styling[soulName] as any)
+          : (styling[soulId] as any)
       ).concat(
         originalStyles instanceof Array ? originalStyles : [originalStyles]
       );
@@ -70,19 +70,18 @@ export function Theming<Themes extends string>({
     };
     // scripts
     const unscriptKey = Symbol();
-    const dummyScript = (host: any) => host;
-    const applyScripts = (host: any, soulName?: Themes) => {
-      soulName ||= document.body.dataset.theme?.split('/')[0] as Themes;
+    const applyScripts = (host: any, soulId?: Themes) => {
+      soulId ||= document.body.dataset.theme?.split('/')[0] as Themes;
       // retrieve scripts
       const scripts: any = !scripting
         ? {}
-        : !soulName || !scripting[soulName]
+        : !soulId || !scripting[soulId]
         ? Object.values(scripting)[0]
-        : scripting[soulName];
+        : scripting[soulId];
       // affect
-      (host[unscriptKey] || dummyScript)(host);
-      host[unscriptKey] = scripts?.unscript || dummyScript;
-      (scripts?.script || dummyScript)(host);
+      if (host[unscriptKey]) host[unscriptKey](host);
+      if (scripts?.unscript) host[unscriptKey] = scripts.unscript;
+      if (scripts?.script) scripts.script(host);
     };
 
     // connected/disconnected

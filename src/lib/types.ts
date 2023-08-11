@@ -140,8 +140,8 @@ export type ObservableUnsubscribe<Value> = () => ObserverCallback<Value>;
 export type ThemingSubscription = (soul: string) => void;
 
 export interface ThemingScripting {
-  script: (host: HTMLElement) => void;
-  unscript: ThemingScripting['script'];
+  script?: (host: HTMLElement) => void;
+  unscript?: ThemingScripting['script'];
 }
 
 export interface ThemingOptions<Themes extends string> {
