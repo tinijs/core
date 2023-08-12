@@ -1,21 +1,5 @@
 import {unsafeCSS} from 'lit';
 
-type SizeVaryRender = (size: Sizes) => string;
-type SizeFactorVaryRender = (sizeFactor: SizeFactors) => string;
-type FontTypeVaryRender = (fontType: FontTypes) => string;
-type JustifyVaryRender = (justify: JustifyContents) => string;
-type ColorOrGradientVaryRender<Values> = (values: Values) => string;
-interface ColorRenderValues {
-  baseName: string;
-  name: string;
-  color: string;
-  contrast: string;
-}
-interface GradientRenderValues extends ColorRenderValues {
-  gradient: string;
-  gradientContrast: string;
-}
-
 export type SizeFactors = SizeBasicFactors | SizeExtraFactors;
 export type FontSizeFactors = SizeFactors;
 export type SpaceSizeFactors = SizeFactors;
@@ -68,6 +52,8 @@ export enum SizeExtraFactors {
   X10 = '10x',
 }
 export const EXTRA_FACTORS = Object.values(SizeExtraFactors);
+
+export const SIZE_FACTORS = [...BASIC_FACTORS, ...EXTRA_FACTORS];
 
 export enum Colors {
   Primary = 'primary',
@@ -281,6 +267,26 @@ export enum FontTypes {
 }
 export const FONT_TYPES = Object.values(FontTypes);
 
+export enum FontWeights {
+  Thin = '100',
+  ExtraLight = '200',
+  Light = '300',
+  Regular = '400',
+  Medium = '500',
+  SemiBold = '600',
+  Bold = '700',
+  ExtraBold = '800',
+  Black = '900',
+}
+export const FONT_WEIGHTS = Object.values(FontWeights);
+
+export enum TextTransforms {
+  Capitalize = 'capitalize',
+  Lowercase = 'lowercase',
+  Uppercase = 'uppercase',
+}
+export const TEXT_TRANSFORMS = Object.values(TextTransforms);
+
 export enum JustifyContents {
   Center = 'center',
   Left = 'left',
@@ -353,20 +359,43 @@ export function generateBasicFactorVaries(render: SizeFactorVaryRender) {
   );
 }
 export function generateSpaceVaries(render: SizeFactorVaryRender) {
-  return unsafeCSS(
-    [...BASIC_FACTORS, ...EXTRA_FACTORS].map(factor => render(factor)).join('')
-  );
+  return unsafeCSS(SIZE_FACTORS.map(factor => render(factor)).join(''));
 }
 
 export function generateFontTypeVaries(render: FontTypeVaryRender) {
   return unsafeCSS(FONT_TYPES.map(fontType => render(fontType)).join(''));
 }
+export function generateFontWeightVaries(render: FontWeightVaryRender) {
+  return unsafeCSS(FONT_WEIGHTS.map(fontWeight => render(fontWeight)).join(''));
+}
 export function generateFontSizeVaries(render: SizeFactorVaryRender) {
+  return unsafeCSS(SIZE_FACTORS.map(factor => render(factor)).join(''));
+}
+
+export function generateTextTransformVaries(render: TextTransformVaryRender) {
   return unsafeCSS(
-    [...BASIC_FACTORS, ...EXTRA_FACTORS].map(factor => render(factor)).join('')
+    TEXT_TRANSFORMS.map(transform => render(transform)).join('')
   );
 }
 
 export function generateJustifyVaries(render: JustifyVaryRender) {
   return unsafeCSS(JUSTIFY_CONTENTS.map(justify => render(justify)).join(''));
+}
+
+type SizeVaryRender = (size: Sizes) => string;
+type SizeFactorVaryRender = (sizeFactor: SizeFactors) => string;
+type FontTypeVaryRender = (fontType: FontTypes) => string;
+type FontWeightVaryRender = (fontWeight: FontWeights) => string;
+type TextTransformVaryRender = (transform: TextTransforms) => string;
+type JustifyVaryRender = (justify: JustifyContents) => string;
+type ColorOrGradientVaryRender<Values> = (values: Values) => string;
+interface ColorRenderValues {
+  baseName: string;
+  name: string;
+  color: string;
+  contrast: string;
+}
+interface GradientRenderValues extends ColorRenderValues {
+  gradient: string;
+  gradientContrast: string;
 }
