@@ -148,3 +148,7 @@ export interface ThemingOptions<Themes extends string> {
   styling?: Record<Themes, CSSResult[]>;
   scripting?: Record<Themes, ThemingScripting>;
 }
+
+export interface PartInfo {
+  readonly [name: string]: string | boolean | number;
+}
