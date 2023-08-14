@@ -297,6 +297,20 @@ export enum JustifyContents {
 }
 export const JUSTIFY_CONTENTS = Object.values(JustifyContents);
 
+export enum BorderStyles {
+  Solid = 'solid',
+  Dashed = 'dashed',
+  Dotted = 'dotted',
+  Double = 'double',
+  Groove = 'groove',
+  Ridge = 'ridge',
+  Inset = 'inset',
+  Outset = 'outset',
+  None = 'none',
+  Hidden = 'hidden',
+}
+export const BORDER_STYLES = Object.values(BorderStyles);
+
 export function generateColorVaries(
   render: ColorOrGradientVaryRender<ColorRenderValues>
 ) {
@@ -382,12 +396,19 @@ export function generateJustifyVaries(render: JustifyVaryRender) {
   return unsafeCSS(JUSTIFY_CONTENTS.map(justify => render(justify)).join(''));
 }
 
+export function generateBorderStyleVaries(render: BorderStyleVaryRender) {
+  return unsafeCSS(
+    BORDER_STYLES.map(borderStyle => render(borderStyle)).join('')
+  );
+}
+
 type SizeVaryRender = (size: Sizes) => string;
 type SizeFactorVaryRender = (sizeFactor: SizeFactors) => string;
 type FontTypeVaryRender = (fontType: FontTypes) => string;
 type FontWeightVaryRender = (fontWeight: FontWeights) => string;
 type TextTransformVaryRender = (transform: TextTransforms) => string;
 type JustifyVaryRender = (justify: JustifyContents) => string;
+type BorderStyleVaryRender = (borderStyle: BorderStyles) => string;
 type ColorOrGradientVaryRender<Values> = (values: Values) => string;
 interface ColorRenderValues {
   baseName: string;

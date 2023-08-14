@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {CSSResult} from 'lit';
+import {ClassInfo} from 'lit/directives/class-map.js';
 import {GLOBAL, APP_ROOT, APP_SPLASHSCREEN_ID, NO_APP_ERROR} from './consts';
 import {
   TiniApp,
@@ -14,6 +15,7 @@ import {
   UseComponentsList,
   ThemingOptions,
 } from './types';
+import {SIZE_FACTORS} from './varies';
 
 export function asset(path: string) {
   return path;
@@ -163,5 +165,45 @@ export function changeTheme({soul, skin}: {soul?: string; skin?: string}) {
         subscription(soul as string)
       );
     }
+  }
+}
+
+export function sizeFactorsToClassInfo(
+  prefix: string,
+  sizeFactors: string
+): ClassInfo {
+  const list = sizeFactors
+    .split(' ')
+    .filter(item => ~SIZE_FACTORS.indexOf(item as any));
+  if (list.length === 4) {
+    return {
+      [`${prefix}-top-${list[0]}`]: true,
+      [`${prefix}-right-${list[1]}`]: true,
+      [`${prefix}-bottom-${list[2]}`]: true,
+      [`${prefix}-left-${list[3]}`]: true,
+    };
+  } else if (list.length === 3) {
+    return {
+      [`${prefix}-top-${list[0]}`]: true,
+      [`${prefix}-right-${list[1]}`]: true,
+      [`${prefix}-bottom-${list[2]}`]: true,
+      [`${prefix}-left-${list[1]}`]: true,
+    };
+  } else if (list.length === 2) {
+    return {
+      [`${prefix}-top-${list[0]}`]: true,
+      [`${prefix}-right-${list[1]}`]: true,
+      [`${prefix}-bottom-${list[0]}`]: true,
+      [`${prefix}-left-${list[1]}`]: true,
+    };
+  } else if (list.length === 1) {
+    return {
+      [`${prefix}-top-${list[0]}`]: true,
+      [`${prefix}-right-${list[0]}`]: true,
+      [`${prefix}-bottom-${list[0]}`]: true,
+      [`${prefix}-left-${list[0]}`]: true,
+    };
+  } else {
+    return {};
   }
 }
