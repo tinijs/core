@@ -22,6 +22,7 @@ export enum Sizes {
 export const SIZES = Object.values(Sizes);
 
 export enum SizeBasicFactors {
+  X0 = '0x',
   X0_1 = '0_1x',
   X0_2 = '0_2x',
   X0_25 = '0_25x',
@@ -306,8 +307,8 @@ export enum BorderStyles {
   Ridge = 'ridge',
   Inset = 'inset',
   Outset = 'outset',
-  None = 'none',
   Hidden = 'hidden',
+  None = 'none',
 }
 export const BORDER_STYLES = Object.values(BorderStyles);
 
