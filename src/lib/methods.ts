@@ -15,7 +15,7 @@ import {
   UseComponentsList,
   ThemingOptions,
 } from './types';
-import {SIZE_FACTORS} from './varies';
+import {SIZE_FACTORS, BORDER_STYLES, COLORS} from './varies';
 
 export function asset(path: string) {
   return path;
@@ -170,8 +170,9 @@ export function changeTheme({soul, skin}: {soul?: string; skin?: string}) {
 
 export function sizeFactorsToClassInfo(
   prefix: string,
-  sizeFactors: string
+  sizeFactors?: string
 ): ClassInfo {
+  if (!sizeFactors) return {};
   const list = sizeFactors
     .split(' ')
     .filter(item => ~SIZE_FACTORS.indexOf(item as any));
@@ -203,6 +204,61 @@ export function sizeFactorsToClassInfo(
       [`${prefix}-bottom-${list[0]}`]: true,
       [`${prefix}-left-${list[0]}`]: true,
     };
+  } else {
+    return {};
+  }
+}
+
+export function borderingToClassInfo(bordering?: string) {
+  if (!bordering) return {};
+  const list = bordering.split(' ');
+  if (
+    list.length === 3 &&
+    ~SIZE_FACTORS.indexOf(list[0] as any) &&
+    ~BORDER_STYLES.indexOf(list[1] as any) &&
+    ~COLORS.indexOf(list[2] as any)
+  ) {
+    return {
+      [`border-width-${list[0]}`]: true,
+      [`border-style-${list[1]}`]: true,
+      [`border-color-${list[2]}`]: true,
+    };
+  } else if (list.length === 2) {
+    if (
+      ~SIZE_FACTORS.indexOf(list[0] as any) &&
+      ~BORDER_STYLES.indexOf(list[1] as any)
+    ) {
+      return {
+        [`border-width-${list[0]}`]: true,
+        [`border-style-${list[1]}`]: true,
+      };
+    } else if (
+      ~BORDER_STYLES.indexOf(list[0] as any) &&
+      ~COLORS.indexOf(list[1] as any)
+    ) {
+      return {
+        [`border-style-${list[0]}`]: true,
+        [`border-color-${list[1]}`]: true,
+      };
+    } else {
+      return {};
+    }
+  } else if (list.length === 1) {
+    if (~SIZE_FACTORS.indexOf(list[0] as any)) {
+      return {
+        [`border-width-${list[0]}`]: true,
+      };
+    } else if (~BORDER_STYLES.indexOf(list[0] as any)) {
+      return {
+        [`border-style-${list[0]}`]: true,
+      };
+    } else if (~COLORS.indexOf(list[0] as any)) {
+      return {
+        [`border-color-${list[0]}`]: true,
+      };
+    } else {
+      return {};
+    }
   } else {
     return {};
   }
