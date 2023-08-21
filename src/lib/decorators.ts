@@ -36,8 +36,13 @@ import ___checkForDIMissingDependencies from './di-checker';
 
 export function Components(items: UseComponentsList) {
   return function (target: any) {
-    useComponents(items);
-    return target;
+    return class extends target {
+      readonly constructorName = target.name;
+      constructor(...args: unknown[]) {
+        super(...args);
+        useComponents(items);
+      }
+    };
   };
 }
 
@@ -206,11 +211,16 @@ export function App(options: AppOptions = {}) {
 export function Component<Themes extends string>(
   options: ComponentOptions<Themes> = {}
 ) {
-  if (options.components) useComponents(options.components);
   return function (target: any) {
     class result extends target {
       readonly constructorName = target.name;
       readonly componentType = options.type || ComponentTypes.Component;
+      constructor(...args: unknown[]) {
+        super(...args);
+        if (options.components) {
+          useComponents(options.components);
+        }
+      }
     }
     if (options.theming) Theming(options.theming)(result);
     return !options.name ? result : customElement(options.name)(result as any);

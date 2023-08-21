@@ -143,12 +143,17 @@ export function stylingWithBases<Themes extends string>(
 
 export function useComponents(items: UseComponentsList) {
   items.forEach(item => {
-    const [constructor, tagName] =
-      item instanceof Array ? item : [item, (item as any).defaultTagName];
+    const useCustomTagName = item instanceof Array;
+    const [constructor, tagName] = useCustomTagName
+      ? item
+      : [item, (item as any).defaultTagName];
     if (!tagName || !constructor) return;
     const isDefined = customElements.get(tagName);
     if (!isDefined) {
-      customElements.define(tagName, constructor);
+      customElements.define(
+        tagName,
+        !useCustomTagName ? constructor : class extends constructor {}
+      );
     }
   });
 }
