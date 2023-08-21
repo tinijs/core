@@ -13,7 +13,7 @@ export {
   query as Query,
   queryAll as QueryAll,
   queryAsync as QueryAsync,
-} from 'lit/decorators';
+} from 'lit/decorators.js';
 
 const TiniComponentMixin = (superClass: TiniComponentConstructor) => {
   class TiniComponentChild extends superClass {
