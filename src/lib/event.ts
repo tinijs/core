@@ -29,7 +29,14 @@ export function Output() {
     descriptor.enumerable = false;
     descriptor.configurable = false;
     descriptor.get = function (this: TiniComponentInstance) {
-      return new EventEmitter<unknown>(this, propertyKey);
+      const emitterKey = `_${propertyKey}Emitter`;
+      return (
+        (this as any)[emitterKey] ||
+        ((this as any)[emitterKey] = new EventEmitter<unknown>(
+          this,
+          propertyKey
+        ))
+      );
     };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return descriptor as any;
