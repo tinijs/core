@@ -5,6 +5,7 @@
   "author": "Lam Nhan",
   "homepage": "https://tinijs.dev",
   "license": "MIT",
+  "sideEffects": false,
   "publishConfig": {
     "access": "public"
   },
