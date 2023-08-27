@@ -1,7 +1,3 @@
-import {GlobalInstance} from './types';
-
-export const GLOBAL = window as unknown as GlobalInstance;
-
 export enum ComponentTypes {
   App = 'app',
   Layout = 'layout',

@@ -12,18 +12,9 @@
   "types": "src/public-api.d.ts",
   "files": [
     "src",
-    "angular",
-    "vue",
-    "react",
-    "svelte",
     "!**/*.ts",
     "**/*.d.ts"
   ],
-  "scripts": {
-    "build": "tsc",
-    "lint": "gts lint",
-    "fix": "gts fix"
-  },
   "keywords": [
     "Javascript",
     "Framework",
@@ -38,6 +29,11 @@
     "NextJS",
     "SvelteKit"
   ],
+  "scripts": {
+    "build": "tsc",
+    "lint": "gts lint",
+    "fix": "gts fix"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/tinijs/core.git"
@@ -47,6 +43,9 @@
   },
   "peerDependencies": {
     "lit": "^3.0.0-pre.0"
+  },
+  "dependencies": {
+    "tinijs": "file:../tinijs/tinijs-0.0.1.tgz"
   },
   "devDependencies": {
     "@types/node": "^20.4.8",

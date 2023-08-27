@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {LitElement, CSSResult} from 'lit';
+import {LitElement} from 'lit';
+import {ThemingOptions, UseComponentsList} from 'tinijs';
+
 import {ComponentTypes, LifecycleHooks} from './consts';
 
 export interface AppOptions {
@@ -7,10 +9,6 @@ export interface AppOptions {
   splashscreen?: 'auto' | 'manual';
   navIndicator?: boolean;
 }
-
-export type UseComponentsList = Array<
-  CustomElementConstructor | [CustomElementConstructor, string]
->;
 
 export interface ComponentOptions<Themes extends string> {
   name?: string;
@@ -48,7 +46,7 @@ export interface GlobalInstance {
   $tiniDIRegistry?: DIRegistry;
   $tiniLHRegistry?: LHRegistry;
   $tiniAppOptions?: AppOptions;
-  $tiniThemingSubsciptions?: Map<symbol, ThemingSubscription>;
+  $tiniThemingSubscriptions?: Map<symbol, ThemingSubscription>;
   $tiniConfigs?: Record<string, unknown>;
   $tiniWorkbox?: any;
   $tiniMeta?: any;
@@ -138,17 +136,3 @@ export type ObservableSubscribe<Value> = (
 export type ObservableUnsubscribe<Value> = () => ObserverCallback<Value>;
 
 export type ThemingSubscription = (soul: string) => void;
-
-export interface ThemingScripting {
-  script?: (host: HTMLElement) => void;
-  unscript?: ThemingScripting['script'];
-}
-
-export interface ThemingOptions<Themes extends string> {
-  styling?: Record<Themes, CSSResult[]>;
-  scripting?: Record<Themes, ThemingScripting>;
-}
-
-export interface PartInfo {
-  readonly [name: string]: string | boolean | number;
-}

@@ -1,4 +1,5 @@
 import {ReactiveController, ReactiveControllerHost} from 'lit';
+
 import {ObservableUnsubscribe} from './types';
 
 export class Observer<Value> implements ReactiveController {

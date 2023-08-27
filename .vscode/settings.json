@@ -2,10 +2,6 @@
   "files.exclude": {
     ".vscode/": true,
     "src/**/*.js": true,
-    "angular/**/*.js": true,
-    "vue/**/*.js": true,
-    "react/**/*.js": true,
-    "svelte/**/*.js": true,
     "test/**/*.js": true,
     "**/*.d.ts": true,
     "**/*.map": true

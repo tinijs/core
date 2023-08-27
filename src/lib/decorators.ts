@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {adoptStyles} from 'lit';
 import {customElement} from 'lit/decorators.js';
+import {GLOBAL, Theming, useComponents, ThemingOptions} from 'tinijs';
+
 import {
   Global,
   TiniApp,
@@ -10,12 +12,9 @@ import {
   DependencyDef,
   DependencyProvider,
   ObserverCallback,
-  UseComponentsList,
-  ThemingOptions,
 } from './types';
 import {
   APP_ROOT,
-  GLOBAL,
   ComponentTypes,
   LifecycleHooks,
   NO_REGISTER_ERROR,
@@ -28,103 +27,14 @@ import {
   getAppSplashscreen,
   hideAppSplashscreen,
   registerGlobalHook,
-  useComponents,
 } from './methods';
 import {Observer} from './observable';
 
 import ___checkForDIMissingDependencies from './di-checker';
 
-export function Components(items: UseComponentsList) {
-  return function (target: any) {
-    return class extends target {
-      readonly constructorName = target.name;
-      constructor(...args: unknown[]) {
-        super(...args);
-        useComponents(items);
-      }
-    };
-  };
-}
-
-export function Theming<Themes extends string>({
-  styling,
-  scripting,
-}: ThemingOptions<Themes>) {
-  return function (target: any) {
-    // originals
-    const originalConnectedCallback = target.prototype.connectedCallback;
-    const originalDisconnectedCallback = target.prototype.disconnectedCallback;
-    const originalUpdated = target.prototype.updated;
-    // styles
-    const unsubscribeKey = Symbol();
-    const applyStyles = (host: any, soulId?: Themes) => {
-      soulId ||= document.body.dataset.theme?.split('/')[0] as Themes;
-      // retrieve styles
-      const originalStyles = target.styles || [];
-      const styles = (
-        !styling
-          ? []
-          : !soulId || !styling[soulId]
-          ? Object.values(styling)[0]
-          : (styling[soulId] as any)
-      ).concat(
-        originalStyles instanceof Array ? originalStyles : [originalStyles]
-      );
-      // affect
-      adoptStyles(host.shadowRoot, styles);
-    };
-    // scripts
-    const unscriptKey = Symbol();
-    const applyScripts = (host: any, soulId?: Themes) => {
-      soulId ||= document.body.dataset.theme?.split('/')[0] as Themes;
-      // retrieve scripts
-      const scripts: any = !scripting
-        ? {}
-        : !soulId || !scripting[soulId]
-        ? Object.values(scripting)[0]
-        : scripting[soulId];
-      // affect
-      if (host[unscriptKey]) host[unscriptKey](host);
-      if (scripts?.unscript) host[unscriptKey] = scripts.unscript;
-      if (scripts?.script) scripts.script(host);
-    };
-
-    // connected/disconnected
-    target.prototype.connectedCallback = function () {
-      originalConnectedCallback?.bind(this)();
-      // watch for soul change
-      if (!GLOBAL.$tiniThemingSubsciptions) {
-        GLOBAL.$tiniThemingSubsciptions = new Map();
-      }
-      GLOBAL.$tiniThemingSubsciptions.set(unsubscribeKey, soul => {
-        applyStyles(this, soul as Themes);
-        applyScripts(this, soul as Themes);
-      });
-      this[unsubscribeKey] = () =>
-        GLOBAL.$tiniThemingSubsciptions?.delete(unsubscribeKey);
-      // apply styles
-      applyStyles(this);
-    };
-    target.prototype.disconnectedCallback = function () {
-      originalDisconnectedCallback?.bind(this)();
-      // unwatch for soul change
-      this[unsubscribeKey]?.();
-    };
-
-    // updated
-    target.prototype.updated = function (...params: any[]) {
-      originalUpdated?.bind(this)(...params);
-      // apply scripts
-      applyScripts(this);
-    };
-
-    return target;
-  };
-}
-
 export function App(options: AppOptions = {}) {
   return function (target: any) {
-    GLOBAL.$tiniAppOptions = options; // set options
+    (GLOBAL as Global).$tiniAppOptions = options; // set options
     // register the exit of the app splashscreen
     if (options.splashscreen) {
       registerGlobalHook(
@@ -146,7 +56,7 @@ export function App(options: AppOptions = {}) {
     // create app
     class result extends target {
       readonly constructorName = target.name;
-      readonly $options = GLOBAL.$tiniAppOptions;
+      readonly $options = (GLOBAL as Global).$tiniAppOptions;
       readonly componentType = ComponentTypes.App;
     }
     // load the registry
@@ -252,7 +162,7 @@ export function GetApp() {
 export function GetOptions() {
   return function (target: Object, propertyKey: string) {
     Reflect.defineProperty(target, propertyKey, {
-      get: () => GLOBAL.$tiniAppOptions,
+      get: () => (GLOBAL as Global).$tiniAppOptions,
       enumerable: false,
       configurable: false,
     });

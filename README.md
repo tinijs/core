@@ -17,7 +17,8 @@ For more, please visit: <https://tinijs.dev> (TODO)
 - Create an `app` (ex. [app.ts](https://github.com/tinijs/skeleton/blob/main/app/app.ts)):
 
 ```ts
-import {TiniComponent, App, html} from '@tinijs/core';
+import {html} from 'lit';
+import {TiniComponent, App} from '@tinijs/core';
 
 @App()
 export class AppRoot extends TiniComponent {
@@ -30,12 +31,12 @@ export class AppRoot extends TiniComponent {
 - Create a `component`:
 
 ```ts
-import {TiniComponent, Component, Input, html} from '@tinijs/core';
+import {html} from 'lit';
+import {TiniComponent, Component, Input} from '@tinijs/core';
 
-export const APP_HELLO = 'app-hello';
 @Component()
 export class AppHelloComponent extends TiniComponent {
-  static readonly defaultTagName = APP_HELLO;
+  static readonly defaultTagName = 'app-hello';
 
   @Input() name!: string;
 
@@ -48,7 +49,8 @@ export class AppHelloComponent extends TiniComponent {
 - Create a `page`:
 
 ```ts
-import {TiniComponent, Page, html} from '@tinijs/core';
+import {html} from 'lit';
+import {TiniComponent, Page} from '@tinijs/core';
 
 @Page({
   name: 'app-page-404'

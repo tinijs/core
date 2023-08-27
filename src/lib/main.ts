@@ -1,4 +1,6 @@
 import {LitElement} from 'lit';
+import {property, state} from 'lit/decorators.js';
+
 import {LifecycleHooks} from './consts';
 import {
   TiniComponentConstructor,
@@ -7,13 +9,9 @@ import {
 } from './types';
 import {runGlobalHooks} from './methods';
 
-export {
-  property as Input,
-  state as Reactive,
-  query as Query,
-  queryAll as QueryAll,
-  queryAsync as QueryAsync,
-} from 'lit/decorators.js';
+export const Input = property;
+
+export const Reactive = state;
 
 const TiniComponentMixin = (superClass: TiniComponentConstructor) => {
   class TiniComponentChild extends superClass {
