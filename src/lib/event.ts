@@ -1,17 +1,17 @@
-import {TiniComponentChild, TiniComponentInstance} from './types';
+import {TiniComponentDerived, TiniComponentInstance} from './types';
 
 export class EventEmitter<Payload> {
-  private _host: TiniComponentInstance;
-  private _eventName: string;
+  private host: TiniComponentInstance;
+  private eventName: string;
 
   constructor(host: TiniComponentInstance, eventName: string) {
-    this._host = host;
-    this._eventName = eventName;
+    this.host = host;
+    this.eventName = eventName;
   }
 
   emit(payload?: Payload, customEventInit: CustomEventInit<Payload> = {}) {
-    return this._host.dispatchEvent(
-      new CustomEvent(this._eventName, {
+    return this.host.dispatchEvent(
+      new CustomEvent(this.eventName, {
         detail: payload,
         ...customEventInit,
       })
@@ -21,7 +21,7 @@ export class EventEmitter<Payload> {
 
 export function Output() {
   return function (
-    _: TiniComponentChild,
+    _: TiniComponentDerived,
     propertyKey: string,
     descriptor?: PropertyDescriptor
   ) {

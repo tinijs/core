@@ -1,16 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {CSSResult} from 'lit';
-import {GLOBAL, ThemingOptions} from 'tinijs';
+import {ThemingOptions} from 'tinijs';
 
-import {APP_ROOT, APP_SPLASHSCREEN_ID, NO_APP_ERROR} from './consts';
 import {
-  TiniApp,
-  Global,
+  GLOBAL,
+  APP_ROOT,
+  APP_SPLASHSCREEN_ID,
+  NO_APP_ERROR,
+  ComponentTypes,
+  LifecycleHooks,
+} from './consts';
+import {
   DIRegistry,
   LHRegistry,
   TiniComponentInstance,
-  TiniComponentType,
-  TiniLifecycleHook,
   GlobalLifecycleHook,
   AppSplashscreenComponent,
 } from './types';
@@ -27,35 +30,34 @@ export function isClass(input: unknown) {
 }
 
 export function getDIRegistry() {
-  return ((GLOBAL as Global).$tiniDIRegistry ||= {
+  return (GLOBAL.DIRegistry ||= {
     registers: new Map<string, () => Promise<any>>(),
     instances: new Map<string, any>(),
     awaiters: [],
   }) as DIRegistry;
 }
 
-export function getAppInstance(fallbackToGlobal?: boolean) {
-  const app = document.querySelector(APP_ROOT);
-  if (!app && !fallbackToGlobal) throw NO_APP_ERROR;
-  return (app || GLOBAL) as TiniApp | Global;
+export function getAppInstance() {
+  const app = (GLOBAL.app ||= document.querySelector(APP_ROOT));
+  if (!app) throw NO_APP_ERROR;
+  return app;
 }
 
-export function getConfigs(): null | Record<string, unknown> {
-  const appOrGlobal = getAppInstance(true);
-  return (
-    (appOrGlobal as TiniApp).$configs ||
-    (appOrGlobal as Global).$tiniConfigs ||
-    null
-  );
+export function getOptions() {
+  return getAppInstance().options;
+}
+
+export function getConfigs() {
+  return getAppInstance().configs;
 }
 
 export function registerGlobalHook(
-  componentTypeOrTypes: TiniComponentType | TiniComponentType[],
-  hookCycleOrCycles: TiniLifecycleHook | TiniLifecycleHook[],
+  componentTypeOrTypes: ComponentTypes | ComponentTypes[],
+  hookCycleOrCycles: LifecycleHooks | LifecycleHooks[],
   hookAction: GlobalLifecycleHook
 ) {
   // init the registry
-  const registry = ((GLOBAL as Global).$tiniLHRegistry ||= {} as LHRegistry);
+  const registry = (GLOBAL.LHRegistry ||= {} as LHRegistry);
   // cycles & types
   const componentTypes =
     typeof componentTypeOrTypes === 'string'
@@ -79,23 +81,17 @@ export function registerGlobalHook(
   return registry;
 }
 
-export function getGlobalHooks(
-  type: TiniComponentType,
-  cycle: TiniLifecycleHook
-) {
-  return (GLOBAL as Global).$tiniLHRegistry?.[type]?.[cycle];
+export function getGlobalHooks(type: ComponentTypes, cycle: LifecycleHooks) {
+  return GLOBAL.LHRegistry?.[type]?.[cycle];
 }
 
 export function runGlobalHooks(
-  cycle: TiniLifecycleHook,
+  cycle: LifecycleHooks,
   component: TiniComponentInstance
 ) {
   const globalHooks = getGlobalHooks(component.componentType, cycle);
-  if (!globalHooks?.length) return;
-  const appOrGlobal = getAppInstance(true);
-  globalHooks.forEach(action =>
-    action(component, appOrGlobal, (GLOBAL as Global).$tiniAppOptions)
-  );
+  globalHooks?.forEach(action => action(component, GLOBAL));
+  return globalHooks;
 }
 
 export function getAppSplashscreen() {

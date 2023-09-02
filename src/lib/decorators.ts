@@ -1,12 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {adoptStyles} from 'lit';
 import {customElement} from 'lit/decorators.js';
-import {GLOBAL, Theming, useComponents, ThemingOptions} from 'tinijs';
+import {Theming, useComponents} from 'tinijs';
 
 import {
-  Global,
-  TiniApp,
-  TiniComponentChild,
+  TiniComponentDerived,
   AppOptions,
   ComponentOptions,
   DependencyDef,
@@ -22,6 +19,7 @@ import {
 import {
   isClass,
   getDIRegistry,
+  getOptions,
   getConfigs,
   getAppInstance,
   getAppSplashscreen,
@@ -34,30 +32,29 @@ import ___checkForDIMissingDependencies from './di-checker';
 
 export function App(options: AppOptions = {}) {
   return function (target: any) {
-    (GLOBAL as Global).$tiniAppOptions = options; // set options
     // register the exit of the app splashscreen
     if (options.splashscreen) {
       registerGlobalHook(
         ComponentTypes.Page,
         LifecycleHooks.OnChildrenReady,
-        (page, appOrGlobal, opts) =>
-          opts?.splashscreen !== 'auto' ? undefined : hideAppSplashscreen()
+        (_, global) =>
+          global.app?.options?.splashscreen !== 'auto'
+            ? undefined
+            : hideAppSplashscreen()
       );
     }
     // register page metas
     registerGlobalHook(
       ComponentTypes.Page,
       LifecycleHooks.OnReady,
-      (page, appOrGlobal) =>
-        (
-          (appOrGlobal as TiniApp).$meta || (appOrGlobal as Global).$tiniMeta
-        )?.setPageMetas(page.metas, location.pathname === '/')
+      (page, global) =>
+        global.app?.meta?.setPageMetas(page.metas, location.pathname === '/')
     );
     // create app
     class result extends target {
       readonly constructorName = target.name;
-      readonly $options = (GLOBAL as Global).$tiniAppOptions;
       readonly componentType = ComponentTypes.App;
+      readonly options = options;
     }
     // load the registry
     const dependencyRegistry = getDIRegistry();
@@ -162,7 +159,7 @@ export function GetApp() {
 export function GetOptions() {
   return function (target: Object, propertyKey: string) {
     Reflect.defineProperty(target, propertyKey, {
-      get: () => (GLOBAL as Global).$tiniAppOptions,
+      get: () => getOptions(),
       enumerable: false,
       configurable: false,
     });
@@ -190,7 +187,7 @@ export function GetSplashscreen() {
 }
 
 export function Inject(id?: string) {
-  return function (target: TiniComponentChild, propertyKey: string) {
+  return function (target: TiniComponentDerived, propertyKey: string) {
     const depId = (id || propertyKey) as string;
     const dependencyRegistry = getDIRegistry();
     // the pending
@@ -207,16 +204,16 @@ export function Inject(id?: string) {
     };
     // queue the dependencies
     const theRegister = dependencyRegistry.registers.get(depId);
-    target._pendingDI ||= [];
+    target.pendingDI ||= [];
     if (!theRegister) {
       let resolveSchedule = () => {};
       const scheduledPending = new Promise(
         resolve => (resolveSchedule = resolve as any)
       );
       dependencyRegistry.awaiters.push(() => resolveSchedule());
-      target._pendingDI.push(() => scheduledPending.then(() => pending()));
+      target.pendingDI.push(() => scheduledPending.then(() => pending()));
     } else {
-      target._pendingDI.push(pending);
+      target.pendingDI.push(pending);
     }
     // result
     Reflect.defineProperty(target, propertyKey, {

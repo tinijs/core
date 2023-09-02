@@ -1,8 +1,28 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {LitElement} from 'lit';
-import {ThemingOptions, UseComponentsList} from 'tinijs';
+import {
+  Constructor,
+  LitElementInterface,
+  ThemingSubscription,
+  ThemingOptions,
+  UseComponentsList,
+} from 'tinijs';
 
 import {ComponentTypes, LifecycleHooks} from './consts';
+
+export interface Global {
+  DIRegistry?: DIRegistry;
+  LHRegistry?: LHRegistry;
+  themingSubscriptions?: Map<symbol, ThemingSubscription>;
+  app?: null | TiniApp;
+}
+
+export type TiniApp = TiniComponentInstance & {
+  options?: AppOptions;
+  configs?: Record<string, unknown>;
+  workbox?: any;
+  meta?: any;
+  router?: any;
+};
 
 export interface AppOptions {
   providers?: DependencyProviders;
@@ -17,10 +37,29 @@ export interface ComponentOptions<Themes extends string> {
   theming?: ThemingOptions<Themes>;
 }
 
-export type TiniComponentType = ComponentTypes;
-export type TiniLifecycleHook = LifecycleHooks;
+export interface TiniComponentInterface {
+  // meta
+  pendingDI?: Array<() => Promise<unknown>>;
+  // default
+  constructorName: string;
+  componentType: ComponentTypes;
+  constructor: () => void;
+  childrenFirstUpdated(): void;
+  // custom/alias hooks
+  onCreate?(): void;
+  onInit?(): void | Promise<void>;
+  onChanges?(changedProperties: any): void;
+  onRenders?(): void;
+  onReady?(): void;
+  onChildrenReady?(): void;
+  onDestroy?(): void;
+  // others
+  metas?: Record<string, any>;
+}
 
-export type ComponentConstruct = (target: any) => any;
+export type TiniComponentDerived = LitElementInterface & TiniComponentInterface;
+export type TiniComponentConstructor = Constructor<TiniComponentDerived>;
+export type TiniComponentInstance = Omit<TiniComponentDerived, 'constructor'>;
 
 export type DependencyProvider = () => Promise<any>;
 export interface DependencyDef {
@@ -31,49 +70,32 @@ export type DependencyProviders = Record<
   string,
   DependencyProvider | DependencyDef
 >;
-
 export interface DIRegistry {
   registers: Map<string, () => Promise<any>>;
   instances: Map<string, any>;
   awaiters: Array<() => any>;
 }
-export type LHRegistry = Record<
-  TiniComponentType,
-  Record<TiniLifecycleHook, GlobalLifecycleHook[]>
->;
-
-export interface GlobalInstance {
-  $tiniDIRegistry?: DIRegistry;
-  $tiniLHRegistry?: LHRegistry;
-  $tiniAppOptions?: AppOptions;
-  $tiniThemingSubscriptions?: Map<symbol, ThemingSubscription>;
-  $tiniConfigs?: Record<string, unknown>;
-  $tiniWorkbox?: any;
-  $tiniMeta?: any;
-  $tiniRouter?: any;
-  $tiniStore?: any;
-  [key: string]: unknown;
-}
-
-export type TiniApp = TiniComponentInstance & {
-  $options?: AppOptions;
-  $configs?: Record<string, unknown>;
-  $workbox?: any;
-  $meta?: any;
-  $router?: any;
-  $store?: any;
-};
-export type Global = GlobalInstance;
-
-export type TiniComponentInstance = Omit<TiniComponentChild, 'constructor'>;
-
-export type TiniComponentChild = TiniComponentInterface & LitElementInterface;
 
 export type GlobalLifecycleHook = (
   component: TiniComponentInstance,
-  appOrGlobal: TiniApp | Global,
-  appOptions?: AppOptions
+  global: Global
 ) => void;
+export type LHRegistry = Record<
+  ComponentTypes,
+  Record<LifecycleHooks, GlobalLifecycleHook[]>
+>;
+
+export type ObserverCallback<Value> = (newVal: Value, oldVal: Value) => void;
+
+export type ObservableSubscribe<Value> = (
+  cb: ObserverCallback<Value>
+) => ObservableUnsubscribe<Value>;
+
+export type ObservableUnsubscribe<Value> = () => ObserverCallback<Value>;
+
+export interface AppSplashscreenComponent extends HTMLElement {
+  hide?(): void;
+}
 
 export interface OnCreate {
   onCreate(): void;
@@ -96,43 +118,3 @@ export interface OnChildrenReady {
 export interface OnDestroy {
   onDestroy(): void;
 }
-export interface TiniComponentInterface {
-  // meta
-  _pendingDI?: Array<() => Promise<unknown>>;
-  // default
-  componentType: TiniComponentType;
-  constructor: () => void;
-  childrenFirstUpdated(): void;
-  // custom/alias hooks
-  onCreate?(): void;
-  onInit?(): void | Promise<void>;
-  onChanges?(changedProperties: any): void;
-  onRenders?(): void;
-  onReady?(): void;
-  onChildrenReady?(): void;
-  onDestroy?(): void;
-  // others
-  metas?: Record<string, any>;
-}
-
-export type LitElementInterface = LitElement;
-
-export type TiniComponentConstructor = Constructor<LitElementInterface> &
-  Constructor<TiniComponentInterface>;
-
-export type Constructor<T = {}> = new (...args: ConstructorArgs) => T;
-export type ConstructorArgs = any[];
-
-export interface AppSplashscreenComponent extends HTMLElement {
-  hide?(): void;
-}
-
-export type ObserverCallback<Value> = (newVal: Value, oldVal: Value) => void;
-
-export type ObservableSubscribe<Value> = (
-  cb: ObserverCallback<Value>
-) => ObservableUnsubscribe<Value>;
-
-export type ObservableUnsubscribe<Value> = () => ObserverCallback<Value>;
-
-export type ThemingSubscription = (soul: string) => void;

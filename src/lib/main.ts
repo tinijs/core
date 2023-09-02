@@ -1,25 +1,22 @@
 import {LitElement} from 'lit';
 import {property, state} from 'lit/decorators.js';
+import {ConstructorArgs} from 'tinijs';
 
 import {LifecycleHooks} from './consts';
-import {
-  TiniComponentConstructor,
-  TiniComponentInstance,
-  ConstructorArgs,
-} from './types';
+import {TiniComponentConstructor, TiniComponentInstance} from './types';
 import {runGlobalHooks} from './methods';
 
 export const Input = property;
 
 export const Reactive = state;
 
-const TiniComponentMixin = (superClass: TiniComponentConstructor) => {
-  class TiniComponentChild extends superClass {
-    private _dependenciesAvailable = !!this._pendingDI?.length;
-    private get _dependenciesResolved() {
-      return (this._pendingDI && this._pendingDI.length === 0) as boolean;
+const TiniComponentMixin = (SuperClass: TiniComponentConstructor) => {
+  class TiniComponent extends SuperClass {
+    private dependenciesAvailable = !!this.pendingDI?.length;
+    private get dependenciesResolved() {
+      return (this.pendingDI && this.pendingDI.length === 0) as boolean;
     }
-    private _initialized?: boolean;
+    private initialized?: boolean;
 
     constructor(...args: ConstructorArgs) {
       super(...args);
@@ -95,26 +92,26 @@ const TiniComponentMixin = (superClass: TiniComponentConstructor) => {
 
     async scheduleUpdate() {
       const digest = async () => {
-        this._pendingDI = []; // marked as resolved
+        this.pendingDI = []; // marked as resolved
         // component hook
         if (this.onInit) await this.onInit();
         // global hooks
         runGlobalHooks(LifecycleHooks.OnInit, this);
         // continue
-        this._initialized = true; // mark as initialized
+        this.initialized = true; // mark as initialized
         super.scheduleUpdate();
       };
       // C: has dependencies but all are resolved
-      if (this._initialized && this._dependenciesResolved) {
+      if (this.initialized && this.dependenciesResolved) {
         super.scheduleUpdate();
       }
       // A: has no dependencies
-      else if (!this._dependenciesAvailable) {
+      else if (!this.dependenciesAvailable) {
         await digest();
       }
       // B: has dependencies but none is resolved
       else {
-        const dependencies = this._pendingDI || [];
+        const dependencies = this.pendingDI || [];
         for (let i = 0; i < dependencies.length; i++) {
           await dependencies[i]();
         }
@@ -122,7 +119,7 @@ const TiniComponentMixin = (superClass: TiniComponentConstructor) => {
       }
     }
   }
-  return TiniComponentChild as TiniComponentConstructor;
+  return TiniComponent as TiniComponentConstructor;
 };
 
 export const TiniComponent = TiniComponentMixin(

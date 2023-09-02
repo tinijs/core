@@ -3,11 +3,11 @@ import {ReactiveController, ReactiveControllerHost} from 'lit';
 import {ObservableUnsubscribe} from './types';
 
 export class Observer<Value> implements ReactiveController {
-  private _host!: ReactiveControllerHost;
+  private host!: ReactiveControllerHost;
   unsubscribes: ObservableUnsubscribe<Value>[] = [];
 
   constructor(host: ReactiveControllerHost) {
-    this._host = host;
+    this.host = host;
     host.addController(this);
   }
 
