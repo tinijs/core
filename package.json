@@ -1,6 +1,6 @@
 {
   "name": "@tinijs/core",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "The core of the TiniJS framework.",
   "author": "Lam Nhan",
   "homepage": "https://tinijs.dev",
@@ -45,7 +45,7 @@
     "lit": "^3.0.0-pre.0"
   },
   "dependencies": {
-    "tinijs": "file:../tinijs/tinijs-0.8.0.tgz"
+    "tinijs": "^0.9.0"
   },
   "devDependencies": {
     "@types/node": "^20.4.8",
