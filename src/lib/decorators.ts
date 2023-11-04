@@ -111,7 +111,7 @@ export function App(options: AppOptions = {}) {
       }
     }
     // forward the app root
-    return customElement(APP_ROOT)(result as any);
+    return customElement(APP_ROOT)(result as any) as any;
   };
 }
 
@@ -130,7 +130,9 @@ export function Component<Themes extends string>(
       }
     }
     if (options.theming) Theming(options.theming)(result);
-    return !options.name ? result : customElement(options.name)(result as any);
+    return (
+      !options.name ? result : customElement(options.name)(result as any)
+    ) as any;
   };
 }
 
