@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {customElement} from 'lit/decorators.js';
-import {Theming, useComponents} from 'tinijs';
+import {Theming, useComponents, setGlobalComponentOptions} from 'tinijs';
 
 import {
   TiniComponentDerived,
@@ -32,6 +32,10 @@ import ___checkForDIMissingDependencies from './di-checker';
 
 export function App(options: AppOptions = {}) {
   return function (target: any) {
+    // global component options
+    if (options.globalComponentOptions) {
+      setGlobalComponentOptions(options.globalComponentOptions);
+    }
     // register the exit of the app splashscreen
     if (options.splashscreen) {
       registerGlobalHook(

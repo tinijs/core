@@ -5,6 +5,7 @@ import {
   ThemingSubscription,
   ThemingOptions,
   UseComponentsList,
+  GlobalComponentOptions,
 } from 'tinijs';
 
 import {ComponentTypes, LifecycleHooks} from './consts';
@@ -28,6 +29,7 @@ export interface AppOptions {
   providers?: DependencyProviders;
   splashscreen?: 'auto' | 'manual';
   navIndicator?: boolean;
+  globalComponentOptions?: GlobalComponentOptions;
 }
 
 export interface ComponentOptions<Themes extends string> {
