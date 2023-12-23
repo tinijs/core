@@ -71,7 +71,7 @@ For more detail, please visit the docs: <https://tinijs.dev/docs> (TODO)
 ## Developement
 
 - Create a home for TiniJS: `mkdir TiniJS && cd TiniJS`
-- Fork the repo: `git clone https://github.com/tinijs/core.git`
+- Fork the repo
 - Install dependencies: `cd core && npm i`
 - Make changes & preview locally: `npm run build && npm pack`
 - Push changes & create a PR 👌
