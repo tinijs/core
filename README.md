@@ -38,7 +38,7 @@ import {TiniComponent, Component, Input} from '@tinijs/core';
 export class AppHelloComponent extends TiniComponent {
   static readonly defaultTagName = 'app-hello';
 
-  @Input() name!: string;
+  @Input() name?: string;
 
   protected render() {
     return html`<h1>Hello ${this.name}! 👋</h1>`;

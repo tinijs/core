@@ -3,9 +3,9 @@ import {CSSResult} from 'lit';
 import {ThemingOptions} from 'tinijs';
 
 import {
-  GLOBAL,
-  APP_ROOT,
-  APP_SPLASHSCREEN_ID,
+  GLOBAL_TINI,
+  TINI_APP_CONTEXT,
+  SPLASHSCREEN_ID,
   NO_APP_ERROR,
   ComponentTypes,
   LifecycleHooks,
@@ -13,10 +13,11 @@ import {
 import {
   DIRegistry,
   LHRegistry,
-  TiniComponentInstance,
+  AppContext,
   GlobalLifecycleHook,
-  AppSplashscreenComponent,
+  SplashscreenComponent,
 } from './types';
+import {TiniComponent} from './main';
 
 export function asset(path: string) {
   return path;
@@ -30,25 +31,34 @@ export function isClass(input: unknown) {
 }
 
 export function getDIRegistry() {
-  return (GLOBAL.DIRegistry ||= {
+  return (GLOBAL_TINI.DIRegistry ||= {
     registers: new Map<string, () => Promise<any>>(),
     instances: new Map<string, any>(),
     awaiters: [],
   }) as DIRegistry;
 }
 
-export function getAppInstance() {
-  const app = (GLOBAL.app ||= document.querySelector(APP_ROOT));
-  if (!app) throw NO_APP_ERROR;
-  return app;
+export function getContext<AppConfigs extends Record<string, unknown>>() {
+  return TINI_APP_CONTEXT as AppContext<AppConfigs>;
+}
+
+export function getApp<AppRoot extends TiniComponent>() {
+  if (!GLOBAL_TINI.app) throw NO_APP_ERROR;
+  return GLOBAL_TINI.app as AppRoot;
 }
 
 export function getOptions() {
-  return getAppInstance().options;
+  return TINI_APP_CONTEXT.options || {};
 }
 
-export function getConfigs() {
-  return getAppInstance().configs;
+export function getConfigs<AppConfigs extends Record<string, unknown>>() {
+  return (TINI_APP_CONTEXT.configs || {}) as AppConfigs;
+}
+
+export function registerConfigs<AppConfigs extends Record<string, unknown>>(
+  configs: AppConfigs
+) {
+  return (TINI_APP_CONTEXT.configs = configs);
 }
 
 export function registerGlobalHook(
@@ -57,7 +67,7 @@ export function registerGlobalHook(
   hookAction: GlobalLifecycleHook
 ) {
   // init the registry
-  const registry = (GLOBAL.LHRegistry ||= {} as LHRegistry);
+  const registry = (GLOBAL_TINI.LHRegistry ||= {} as LHRegistry);
   // cycles & types
   const componentTypes =
     typeof componentTypeOrTypes === 'string'
@@ -82,24 +92,32 @@ export function registerGlobalHook(
 }
 
 export function getGlobalHooks(type: ComponentTypes, cycle: LifecycleHooks) {
-  return GLOBAL.LHRegistry?.[type]?.[cycle];
+  return GLOBAL_TINI.LHRegistry?.[type]?.[cycle];
 }
 
 export function runGlobalHooks(
   cycle: LifecycleHooks,
-  component: TiniComponentInstance
+  component: TiniComponent
 ) {
-  const globalHooks = getGlobalHooks(component.componentType, cycle);
-  globalHooks?.forEach(action => action(component, GLOBAL));
+  const globalHooks = getGlobalHooks(
+    (component.constructor as any).componentType,
+    cycle
+  );
+  const data = {
+    source: component,
+    app: getApp(),
+    appContext: getContext(),
+  };
+  globalHooks?.forEach(action => action(data));
   return globalHooks;
 }
 
-export function getAppSplashscreen() {
-  return document.getElementById(APP_SPLASHSCREEN_ID);
+export function getSplashscreen() {
+  return document.getElementById(SPLASHSCREEN_ID) || undefined;
 }
 
-export function hideAppSplashscreen() {
-  const node = getAppSplashscreen() as AppSplashscreenComponent;
+export function hideSplashscreen() {
+  const node = getSplashscreen() as SplashscreenComponent;
   if (!node) return;
   if (node.hide instanceof Function) {
     node.hide();
@@ -108,16 +126,16 @@ export function hideAppSplashscreen() {
   }
 }
 
-export function stylingWithBases<Themes extends string>(
-  bases: Array<Record<Themes, CSSResult>>,
-  additionalStyling?: Record<Themes, CSSResult[]>
+export function stylingWithBases<ThemeId extends string>(
+  bases: Array<Record<ThemeId, CSSResult>>,
+  additionalStyling?: Record<ThemeId, CSSResult[]>
 ) {
   // bases
   const styling = bases.reduce(
     (result, item) => {
       Object.keys(item).forEach(key => {
         result[key] ||= [];
-        result[key].push(item[key as Themes]);
+        result[key].push(item[key as ThemeId]);
       });
       return result;
     },
@@ -127,9 +145,9 @@ export function stylingWithBases<Themes extends string>(
   if (additionalStyling) {
     Object.keys(additionalStyling).forEach(key => {
       styling[key] ||= [];
-      styling[key].push(...additionalStyling[key as Themes]);
+      styling[key].push(...additionalStyling[key as ThemeId]);
     });
   }
   // result
-  return styling as NonNullable<ThemingOptions<Themes>['styling']>;
+  return styling as NonNullable<ThemingOptions<ThemeId>['styling']>;
 }

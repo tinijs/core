@@ -1,67 +1,29 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {
-  Constructor,
-  LitElementInterface,
-  ThemingSubscription,
-  ThemingOptions,
-  UseComponentsList,
-  GlobalComponentOptions,
-} from 'tinijs';
+import {PropertyValues} from 'lit';
+import {ThemingOptions, RegisterComponentsList, UIOptions} from 'tinijs';
 
-import {ComponentTypes, LifecycleHooks} from './consts';
+import {TINI_APP_CONTEXT, ComponentTypes, LifecycleHooks} from './consts';
+import {TiniComponent} from './main';
 
-export interface Global {
-  DIRegistry?: DIRegistry;
-  LHRegistry?: LHRegistry;
-  themingSubscriptions?: Map<symbol, ThemingSubscription>;
-  app?: null | TiniApp;
+export interface AppContext<AppConfigs extends Record<string, unknown>> {
+  options?: AppOptions;
+  configs?: AppConfigs;
 }
 
-export type TiniApp = TiniComponentInstance & {
-  options?: AppOptions;
-  configs?: Record<string, unknown>;
-  workbox?: any;
-  meta?: any;
-  router?: any;
-};
-
 export interface AppOptions {
+  components?: RegisterComponentsList;
+  uiOptions?: UIOptions;
   providers?: DependencyProviders;
   splashscreen?: 'auto' | 'manual';
   navIndicator?: boolean;
-  globalComponentOptions?: GlobalComponentOptions;
 }
 
-export interface ComponentOptions<Themes extends string> {
+export interface ComponentOptions<ThemeId extends string> {
   name?: string;
   type?: ComponentTypes;
-  components?: UseComponentsList;
-  theming?: ThemingOptions<Themes>;
+  components?: RegisterComponentsList;
+  theming?: ThemingOptions<ThemeId>;
 }
-
-export interface TiniComponentInterface {
-  // meta
-  pendingDI?: Array<() => Promise<unknown>>;
-  // default
-  constructorName: string;
-  componentType: ComponentTypes;
-  constructor: () => void;
-  childrenFirstUpdated(): void;
-  // custom/alias hooks
-  onCreate?(): void;
-  onInit?(): void | Promise<void>;
-  onChanges?(changedProperties: any): void;
-  onRenders?(): void;
-  onReady?(): void;
-  onChildrenReady?(): void;
-  onDestroy?(): void;
-  // others
-  metas?: Record<string, any>;
-}
-
-export type TiniComponentDerived = LitElementInterface & TiniComponentInterface;
-export type TiniComponentConstructor = Constructor<TiniComponentDerived>;
-export type TiniComponentInstance = Omit<TiniComponentDerived, 'constructor'>;
 
 export type DependencyProvider = () => Promise<any>;
 export interface DependencyDef {
@@ -78,45 +40,55 @@ export interface DIRegistry {
   awaiters: Array<() => any>;
 }
 
-export type GlobalLifecycleHook = (
-  component: TiniComponentInstance,
-  global: Global
-) => void;
+export type GlobalLifecycleHook = (data: {
+  source: TiniComponent;
+  app: TiniComponent;
+  appContext: typeof TINI_APP_CONTEXT;
+}) => void;
 export type LHRegistry = Record<
   ComponentTypes,
   Record<LifecycleHooks, GlobalLifecycleHook[]>
 >;
 
-export type ObserverCallback<Value> = (newVal: Value, oldVal: Value) => void;
-
+export type ObserverCallback<Value> = (
+  newValue: Value,
+  oldValue: Value
+) => void;
 export type ObservableSubscribe<Value> = (
-  cb: ObserverCallback<Value>
+  callback: ObserverCallback<Value>
 ) => ObservableUnsubscribe<Value>;
-
 export type ObservableUnsubscribe<Value> = () => ObserverCallback<Value>;
 
-export interface AppSplashscreenComponent extends HTMLElement {
+export interface SplashscreenComponent extends HTMLElement {
   hide?(): void;
 }
 
+export interface AppWithOptions {
+  options: AppOptions;
+}
+
+export interface AppWithConfigs<AppConfigs extends Record<string, unknown>> {
+  configs: AppConfigs;
+}
+
 export interface OnCreate {
-  onCreate(): void;
+  onCreate(): void; // connectedCallback
 }
 export interface OnInit {
   onInit(): void | Promise<void>;
 }
-export interface OnChanges {
-  onChanges(): void;
-}
-export interface OnRenders {
-  onRenders(): void;
-}
 export interface OnReady {
-  onReady(): void;
+  onReady(changedProperties: PropertyValues<unknown>): void; // firstUpdated
 }
 export interface OnChildrenReady {
   onChildrenReady(): void;
 }
+export interface OnChanges {
+  onChanges(changedProperties: PropertyValues<unknown>): void; // willUpdate
+}
+export interface OnRenders {
+  onRenders(changedProperties: PropertyValues<unknown>): void; // updated
+}
 export interface OnDestroy {
-  onDestroy(): void;
+  onDestroy(): void; // disconnectedCallback
 }

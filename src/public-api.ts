@@ -1,7 +1,3 @@
-// forward tinijs exports
-export * from 'tinijs';
-
-// lib
 export * from './lib/decorators';
 export * from './lib/methods';
 export * from './lib/consts';

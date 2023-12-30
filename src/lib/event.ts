@@ -1,10 +1,10 @@
-import {TiniComponentDerived, TiniComponentInstance} from './types';
+import {TiniComponent} from './main';
 
 export class EventEmitter<Payload> {
-  private host: TiniComponentInstance;
+  private host: TiniComponent;
   private eventName: string;
 
-  constructor(host: TiniComponentInstance, eventName: string) {
+  constructor(host: TiniComponent, eventName: string) {
     this.host = host;
     this.eventName = eventName;
   }
@@ -20,25 +20,15 @@ export class EventEmitter<Payload> {
 }
 
 export function Output() {
-  return function (
-    _: TiniComponentDerived,
-    propertyKey: string,
-    descriptor?: PropertyDescriptor
-  ) {
-    descriptor ||= {};
-    descriptor.enumerable = false;
-    descriptor.configurable = false;
-    descriptor.get = function (this: TiniComponentInstance) {
-      const emitterKey = `_${propertyKey}Emitter`;
-      return (
-        (this as any)[emitterKey] ||
-        ((this as any)[emitterKey] = new EventEmitter<unknown>(
+  return function (prototype: any, propertyName: string) {
+    const emitterKey = Symbol();
+    Object.defineProperty(prototype, propertyName, {
+      get: function () {
+        return (this[emitterKey] ||= new EventEmitter<unknown>(
           this,
-          propertyKey
-        ))
-      );
-    };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return descriptor as any;
+          propertyName
+        ));
+      },
+    });
   };
 }

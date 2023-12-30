@@ -1,9 +1,24 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import {
+  LitElement,
+  CSSResultOrNative,
+  PropertyValues,
+  adoptStyles,
+  getCompatibleStyle,
+  unsafeCSS,
+} from 'lit';
 import {customElement} from 'lit/decorators.js';
-import {Theming, useComponents, setGlobalComponentOptions} from 'tinijs';
+import {
+  THEME_CHANGE_EVENT,
+  ActiveTheme,
+  registerComponents,
+  setUIOptions,
+  getTheme,
+  adoptScripts,
+  processComponentStyles,
+} from 'tinijs';
 
 import {
-  TiniComponentDerived,
   AppOptions,
   ComponentOptions,
   DependencyDef,
@@ -11,6 +26,8 @@ import {
   ObserverCallback,
 } from './types';
 import {
+  GLOBAL_TINI,
+  TINI_APP_CONTEXT,
   APP_ROOT,
   ComponentTypes,
   LifecycleHooks,
@@ -21,48 +38,40 @@ import {
   getDIRegistry,
   getOptions,
   getConfigs,
-  getAppInstance,
-  getAppSplashscreen,
-  hideAppSplashscreen,
+  getContext,
+  getApp,
+  getSplashscreen,
+  hideSplashscreen,
   registerGlobalHook,
 } from './methods';
 import {Observer} from './observable';
-
+import {TiniComponent} from './main';
 import ___checkForDIMissingDependencies from './di-checker';
 
 export function App(options: AppOptions = {}) {
   return function (target: any) {
-    // global component options
-    if (options.globalComponentOptions) {
-      setGlobalComponentOptions(options.globalComponentOptions);
+    // set app options
+    TINI_APP_CONTEXT.options = options;
+
+    // ui options
+    if (options.uiOptions) {
+      setUIOptions(options.uiOptions);
     }
+
     // register the exit of the app splashscreen
     if (options.splashscreen) {
       registerGlobalHook(
         ComponentTypes.Page,
         LifecycleHooks.OnChildrenReady,
-        (_, global) =>
-          global.app?.options?.splashscreen !== 'auto'
-            ? undefined
-            : hideAppSplashscreen()
+        ({appContext}) => {
+          if (appContext.options?.splashscreen !== 'auto') return;
+          hideSplashscreen();
+        }
       );
     }
-    // register page metas
-    registerGlobalHook(
-      ComponentTypes.Page,
-      LifecycleHooks.OnReady,
-      (page, global) =>
-        global.app?.meta?.setPageMetas(page.metas, location.pathname === '/')
-    );
-    // create app
-    class result extends target {
-      readonly constructorName = target.name;
-      readonly componentType = ComponentTypes.App;
-      readonly options = options;
-    }
-    // load the registry
+
+    // dependencies management
     const dependencyRegistry = getDIRegistry();
-    // add the registers
     const providers = options.providers || {};
     const providerIds = Object.keys(providers);
     for (let i = 0; i < providerIds.length; i++) {
@@ -114,87 +123,159 @@ export function App(options: AppOptions = {}) {
         dependencyRegistry.awaiters[i]();
       }
     }
-    // forward the app root
-    return customElement(APP_ROOT)(result as any) as any;
-  };
-}
 
-export function Component<Themes extends string>(
-  options: ComponentOptions<Themes> = {}
-) {
-  return function (target: any) {
-    class result extends target {
-      readonly constructorName = target.name;
-      readonly componentType = options.type || ComponentTypes.Component;
+    // target modifications
+    const result = class extends target {
+      static readonly componentType = ComponentTypes.App;
+
       constructor(...args: unknown[]) {
         super(...args);
-        if (options.components) {
-          useComponents(options.components);
-        }
+        // set the app & register components
+        GLOBAL_TINI.app = this as unknown as TiniComponent;
+        if (options.components) registerComponents(options.components);
       }
-    }
-    if (options.theming) Theming(options.theming)(result);
-    return (
-      !options.name ? result : customElement(options.name)(result as any)
-    ) as any;
+    } as any;
+
+    // forward the target
+    return customElement(APP_ROOT)(result);
   };
 }
 
-export function Page<Themes extends string>(
-  options?: Omit<ComponentOptions<Themes>, 'type'>
+export function Component<ThemeId extends string>(
+  options: ComponentOptions<ThemeId> = {}
+) {
+  return function (target: any) {
+    // target modifications
+    const result = class extends target {
+      static readonly componentType = options.type || ComponentTypes.Component;
+
+      private activeTheme = getTheme();
+
+      protected createRenderRoot() {
+        const renderRoot =
+          this.shadowRoot ??
+          this.attachShadow(
+            (this.constructor as typeof LitElement).shadowRootOptions
+          );
+        this.customAdoptStyles(renderRoot);
+        return renderRoot;
+      }
+
+      private onThemeChange = (e: Event) => {
+        this.activeTheme = (e as CustomEvent<ActiveTheme>).detail;
+        this.customAdoptStyles(this.shadowRoot || this);
+        this.customAdoptScripts();
+      };
+
+      connectedCallback() {
+        if (options.components) registerComponents(options.components);
+        super.connectedCallback();
+        addEventListener(THEME_CHANGE_EVENT, this.onThemeChange);
+      }
+
+      disconnectedCallback() {
+        super.disconnectedCallback();
+        removeEventListener(THEME_CHANGE_EVENT, this.onThemeChange);
+      }
+
+      protected updated(changedProperties: PropertyValues<this>) {
+        super.updated(changedProperties);
+        this.customAdoptScripts();
+      }
+
+      private customAdoptStyles(renderRoot: HTMLElement | DocumentFragment) {
+        const allStyles = [] as Array<string | CSSResultOrNative>;
+        // theme styles
+        const styling = options.theming?.styling;
+        if (styling) {
+          const {soulId, themeId} = this.activeTheme;
+          allStyles.push(
+            ...(styling[themeId as ThemeId] ||
+              styling[soulId as ThemeId] ||
+              Object.values(styling)[0] ||
+              [])
+          );
+        }
+        // element styles
+        allStyles.push(
+          ...(this.constructor as typeof LitElement).elementStyles
+        );
+        // adopt styles
+        const styleText = processComponentStyles(allStyles, this.activeTheme);
+        adoptStyles(renderRoot as unknown as ShadowRoot, [
+          getCompatibleStyle(unsafeCSS(styleText)),
+        ]);
+      }
+
+      private customAdoptScripts() {
+        adoptScripts(
+          this as unknown as HTMLElement,
+          this.activeTheme,
+          options.theming?.scripting
+        );
+      }
+    } as any;
+
+    // return or forward the target
+    return !options.name ? result : customElement(options.name)(result);
+  };
+}
+
+export function Page<ThemeId extends string>(
+  options?: Omit<ComponentOptions<ThemeId>, 'type'>
 ) {
   return Component({...options, type: ComponentTypes.Page});
 }
 
-export function Layout<Themes extends string>(
-  options?: Omit<ComponentOptions<Themes>, 'type'>
+export function Layout<ThemeId extends string>(
+  options?: Omit<ComponentOptions<ThemeId>, 'type'>
 ) {
   return Component({...options, type: ComponentTypes.Layout});
 }
 
-export function GetApp() {
-  return function (target: Object, propertyKey: string) {
-    Reflect.defineProperty(target, propertyKey, {
-      get: () => getAppInstance(),
-      enumerable: false,
-      configurable: false,
+export function UseContext() {
+  return function (prototype: any, propertyName: string) {
+    Object.defineProperty(prototype, propertyName, {
+      get: () => getContext(),
     });
   };
 }
 
-export function GetOptions() {
-  return function (target: Object, propertyKey: string) {
-    Reflect.defineProperty(target, propertyKey, {
+export function UseApp() {
+  return function (prototype: any, propertyName: string) {
+    Object.defineProperty(prototype, propertyName, {
+      get: () => getApp(),
+    });
+  };
+}
+
+export function UseOptions() {
+  return function (prototype: any, propertyName: string) {
+    Object.defineProperty(prototype, propertyName, {
       get: () => getOptions(),
-      enumerable: false,
-      configurable: false,
     });
   };
 }
 
-export function GetConfigs() {
-  return function (target: Object, propertyKey: string) {
-    Reflect.defineProperty(target, propertyKey, {
+export function UseConfigs() {
+  return function (prototype: any, propertyName: string) {
+    Object.defineProperty(prototype, propertyName, {
       get: () => getConfigs(),
-      enumerable: false,
-      configurable: false,
     });
   };
 }
 
-export function GetSplashscreen() {
-  return function (target: Object, propertyKey: string) {
-    Reflect.defineProperty(target, propertyKey, {
-      get: () => getAppSplashscreen(),
-      enumerable: false,
-      configurable: false,
+export function UseSplashscreen() {
+  return function (prototype: any, propertyName: string) {
+    Object.defineProperty(prototype, propertyName, {
+      get: () => getSplashscreen(),
     });
   };
 }
 
 export function Inject(id?: string) {
-  return function (target: TiniComponentDerived, propertyKey: string) {
-    const depId = (id || propertyKey) as string;
+  return function (prototype: any, propertyName: string) {
+    const depId = (id || propertyName) as string;
     const dependencyRegistry = getDIRegistry();
     // the pending
     const pending = async () => {
@@ -210,22 +291,22 @@ export function Inject(id?: string) {
     };
     // queue the dependencies
     const theRegister = dependencyRegistry.registers.get(depId);
-    target.pendingDI ||= [];
+    prototype.pendingDependencies ||= [];
     if (!theRegister) {
       let resolveSchedule = () => {};
       const scheduledPending = new Promise(
         resolve => (resolveSchedule = resolve as any)
       );
       dependencyRegistry.awaiters.push(() => resolveSchedule());
-      target.pendingDI.push(() => scheduledPending.then(() => pending()));
+      prototype.pendingDependencies.push(() =>
+        scheduledPending.then(() => pending())
+      );
     } else {
-      target.pendingDI.push(pending);
+      prototype.pendingDependencies.push(pending);
     }
     // result
-    Reflect.defineProperty(target, propertyKey, {
+    Object.defineProperty(prototype, propertyName, {
       get: () => dependencyRegistry.instances.get(depId),
-      enumerable: false,
-      configurable: false,
     });
   };
 }
@@ -235,58 +316,49 @@ export function Vendor(id?: string) {
 }
 
 export function Observable(registerName?: string, noInitial?: boolean) {
-  return function (target: any, propertyKey: string) {
-    const valueKey = `_${propertyKey}Value`;
-    const registerKey = registerName || `${propertyKey}Changed`;
+  return function (prototype: any, propertyName: string) {
+    const valueKey = `_${propertyName}Value`;
+    const registerKey = registerName || `${propertyName}Changed`;
     const onChangedHandlers: Map<symbol, ObserverCallback<unknown>> = new Map();
-    Reflect.defineProperty(target, valueKey, {
+    Object.defineProperty(prototype, valueKey, {
       value: undefined,
       writable: true,
-      enumerable: false,
-      configurable: false,
     });
-    Reflect.defineProperty(target, registerKey, {
+    Object.defineProperty(prototype, registerKey, {
       value: (cb: ObserverCallback<unknown>) => {
         const subsciptionId = Symbol();
         // register the handler
         onChangedHandlers.set(subsciptionId, cb);
         // initial
-        const currentVal = target[valueKey];
+        const currentVal = prototype[valueKey];
         if (!noInitial && currentVal !== undefined) {
           onChangedHandlers.get(subsciptionId)?.(currentVal, undefined);
         }
         // unsubcribe
         return () => onChangedHandlers.delete(subsciptionId);
       },
-      enumerable: false,
-      configurable: false,
     });
-    Reflect.defineProperty(target, propertyKey, {
-      get: () => target[valueKey],
-      set: newVal => {
-        let oldVal = target[valueKey];
-        oldVal =
-          !oldVal || typeof oldVal !== 'object'
-            ? oldVal
-            : JSON.parse(JSON.stringify(oldVal));
-        target[valueKey] = newVal;
+    Object.defineProperty(prototype, propertyName, {
+      get: () => prototype[valueKey],
+      set: newValue => {
+        let oldValue = prototype[valueKey];
+        oldValue =
+          !oldValue || typeof oldValue !== 'object'
+            ? oldValue
+            : JSON.parse(JSON.stringify(oldValue));
+        prototype[valueKey] = newValue;
         onChangedHandlers.forEach(
-          handler => handler && handler(newVal, oldVal)
+          handler => handler && handler(newValue, oldValue)
         );
       },
-      enumerable: false,
-      configurable: false,
     });
   };
 }
 
 export function Observe() {
-  return function (target: Object, propertyKey: string) {
-    Reflect.defineProperty(target, propertyKey, {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      value: new Observer(target as any),
-      enumerable: false,
-      configurable: false,
+  return function (prototype: any, propertyName: string) {
+    Object.defineProperty(prototype, propertyName, {
+      value: new Observer(prototype as any),
     });
   };
 }
