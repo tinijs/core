@@ -21,11 +21,17 @@ export class TiniComponent extends LitElement {
   static readonly componentName: string = 'unnamed';
   static readonly componentType: string = 'component';
 
-  private pendingDependencies?: Array<() => Promise<unknown>>;
   private initialized = false;
+  private pendingDependencies?: Array<() => Promise<unknown>>;
+  private storeManager?: {
+    pending: Array<[any, string, string]>;
+    unsubscribes: Array<() => void>;
+  };
 
   connectedCallback() {
     super.connectedCallback();
+    // subscribe store
+    this.subscribeStore();
     // run hooks
     runGlobalHooks(LifecycleHooks.OnCreate, this);
     (this as typeof this & OnCreate).onCreate?.();
@@ -36,6 +42,8 @@ export class TiniComponent extends LitElement {
     // run hooks
     runGlobalHooks(LifecycleHooks.OnDestroy, this);
     (this as typeof this & OnDestroy).onDestroy?.();
+    // unsubscribe store
+    this.unsubscribeStore();
   }
 
   protected override willUpdate(changedProperties: PropertyValues<this>) {
@@ -107,5 +115,23 @@ export class TiniComponent extends LitElement {
     runGlobalHooks(LifecycleHooks.OnInit, this);
     // continue
     super.scheduleUpdate();
+  }
+
+  private subscribeStore() {
+    if (!this.storeManager?.pending?.length) return;
+    const unsubscribes = (this.storeManager.unsubscribes ||= []);
+    this.storeManager.pending.forEach(([store, stateKey, propertyName]) => {
+      const unsubscribe = store.subscribe(
+        stateKey,
+        (value: unknown) => ((this as any)[propertyName] = value)
+      );
+      unsubscribes.push(unsubscribe);
+    });
+  }
+
+  private unsubscribeStore() {
+    if (!this.storeManager?.unsubscribes?.length) return;
+    this.storeManager.unsubscribes.forEach(unsubscribe => unsubscribe());
+    this.storeManager.unsubscribes = [];
   }
 }
