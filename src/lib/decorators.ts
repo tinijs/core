@@ -326,16 +326,16 @@ export function Observable(registerName?: string, noInitial?: boolean) {
     });
     Object.defineProperty(prototype, registerKey, {
       value: (cb: ObserverCallback<unknown>) => {
-        const subsciptionId = Symbol();
+        const subscriptionId = Symbol();
         // register the handler
-        onChangedHandlers.set(subsciptionId, cb);
+        onChangedHandlers.set(subscriptionId, cb);
         // initial
         const currentVal = prototype[valueKey];
         if (!noInitial && currentVal !== undefined) {
-          onChangedHandlers.get(subsciptionId)?.(currentVal, undefined);
+          onChangedHandlers.get(subscriptionId)?.(currentVal, undefined);
         }
         // unsubcribe
-        return () => onChangedHandlers.delete(subsciptionId);
+        return () => onChangedHandlers.delete(subscriptionId);
       },
     });
     Object.defineProperty(prototype, propertyName, {
@@ -358,7 +358,7 @@ export function Observable(registerName?: string, noInitial?: boolean) {
 export function Observe() {
   return function (prototype: any, propertyName: string) {
     Object.defineProperty(prototype, propertyName, {
-      value: new Observer(prototype as any),
+      value: new Observer(prototype),
     });
   };
 }

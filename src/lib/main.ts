@@ -21,7 +21,8 @@ export class TiniComponent extends LitElement {
   static readonly componentName: string = 'unnamed';
   static readonly componentType: string = 'component';
 
-  private pendingDependencies: Array<() => Promise<unknown>> = [];
+  private pendingDependencies?: Array<() => Promise<unknown>>;
+  private initialized = false;
 
   connectedCallback() {
     super.connectedCallback();
@@ -81,22 +82,30 @@ export class TiniComponent extends LitElement {
   }
 
   protected override async scheduleUpdate() {
-    const digest = async () => {
-      this.pendingDependencies = []; // marked as resolved
-      // run hooks
-      await (this as typeof this & OnInit).onInit?.();
-      runGlobalHooks(LifecycleHooks.OnInit, this);
-      // continue
+    // A: subsequent updates
+    if (this.initialized) {
       super.scheduleUpdate();
-    };
-    // resolve dependencies
-    if (this.pendingDependencies.length) {
+    }
+    // B: no dependencies
+    else if (!this.pendingDependencies?.length) {
+      await this.digestDI();
+    }
+    // C: has dependencies
+    else {
       for (let i = 0; i < this.pendingDependencies.length; i++) {
         await this.pendingDependencies[i]();
       }
-      await digest();
-    } else {
-      await digest();
+      await this.digestDI();
     }
+  }
+
+  private async digestDI() {
+    this.initialized = true;
+    this.pendingDependencies = [];
+    // run hooks
+    await (this as typeof this & OnInit).onInit?.();
+    runGlobalHooks(LifecycleHooks.OnInit, this);
+    // continue
+    super.scheduleUpdate();
   }
 }
