@@ -23,7 +23,6 @@ import {
   ComponentOptions,
   DependencyDef,
   DependencyProvider,
-  ObserverCallback,
 } from './types';
 import {
   GLOBAL_TINI,
@@ -44,7 +43,6 @@ import {
   hideSplashscreen,
   registerGlobalHook,
 } from './methods';
-import {Observer} from './observable';
 import {TiniComponent} from './main';
 import ___checkForDIMissingDependencies from './di-checker';
 
@@ -233,46 +231,6 @@ export function Layout<ThemeId extends string>(
   return Component({...options, type: ComponentTypes.Layout});
 }
 
-export function UseContext() {
-  return function (prototype: any, propertyName: string) {
-    Object.defineProperty(prototype, propertyName, {
-      get: () => getContext(),
-    });
-  };
-}
-
-export function UseApp() {
-  return function (prototype: any, propertyName: string) {
-    Object.defineProperty(prototype, propertyName, {
-      get: () => getApp(),
-    });
-  };
-}
-
-export function UseOptions() {
-  return function (prototype: any, propertyName: string) {
-    Object.defineProperty(prototype, propertyName, {
-      get: () => getOptions(),
-    });
-  };
-}
-
-export function UseConfigs() {
-  return function (prototype: any, propertyName: string) {
-    Object.defineProperty(prototype, propertyName, {
-      get: () => getConfigs(),
-    });
-  };
-}
-
-export function UseSplashscreen() {
-  return function (prototype: any, propertyName: string) {
-    Object.defineProperty(prototype, propertyName, {
-      get: () => getSplashscreen(),
-    });
-  };
-}
-
 export function Inject(id?: string) {
   return function (prototype: any, propertyName: string) {
     const depId = (id || propertyName) as string;
@@ -315,50 +273,42 @@ export function Vendor(id?: string) {
   return Inject(id);
 }
 
-export function Observable(registerName?: string, noInitial?: boolean) {
+export function UseContext() {
   return function (prototype: any, propertyName: string) {
-    const valueKey = `_${propertyName}Value`;
-    const registerKey = registerName || `${propertyName}Changed`;
-    const onChangedHandlers: Map<symbol, ObserverCallback<unknown>> = new Map();
-    Object.defineProperty(prototype, valueKey, {
-      value: undefined,
-      writable: true,
-    });
-    Object.defineProperty(prototype, registerKey, {
-      value: (cb: ObserverCallback<unknown>) => {
-        const subscriptionId = Symbol();
-        // register the handler
-        onChangedHandlers.set(subscriptionId, cb);
-        // initial
-        const currentVal = prototype[valueKey];
-        if (!noInitial && currentVal !== undefined) {
-          onChangedHandlers.get(subscriptionId)?.(currentVal, undefined);
-        }
-        // unsubcribe
-        return () => onChangedHandlers.delete(subscriptionId);
-      },
-    });
     Object.defineProperty(prototype, propertyName, {
-      get: () => prototype[valueKey],
-      set: newValue => {
-        let oldValue = prototype[valueKey];
-        oldValue =
-          !oldValue || typeof oldValue !== 'object'
-            ? oldValue
-            : JSON.parse(JSON.stringify(oldValue));
-        prototype[valueKey] = newValue;
-        onChangedHandlers.forEach(
-          handler => handler && handler(newValue, oldValue)
-        );
-      },
+      get: () => getContext(),
     });
   };
 }
 
-export function Observe() {
+export function UseApp() {
   return function (prototype: any, propertyName: string) {
     Object.defineProperty(prototype, propertyName, {
-      value: new Observer(prototype),
+      get: () => getApp(),
+    });
+  };
+}
+
+export function UseOptions() {
+  return function (prototype: any, propertyName: string) {
+    Object.defineProperty(prototype, propertyName, {
+      get: () => getOptions(),
+    });
+  };
+}
+
+export function UseConfigs() {
+  return function (prototype: any, propertyName: string) {
+    Object.defineProperty(prototype, propertyName, {
+      get: () => getConfigs(),
+    });
+  };
+}
+
+export function UseSplashscreen() {
+  return function (prototype: any, propertyName: string) {
+    Object.defineProperty(prototype, propertyName, {
+      get: () => getSplashscreen(),
     });
   };
 }
