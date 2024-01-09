@@ -3,8 +3,8 @@ import {PropertyValues} from 'lit';
 import {ThemingOptions, RegisterComponentsList, UIOptions} from 'tinijs';
 
 import {TINI_APP_CONTEXT, ComponentTypes, LifecycleHooks} from './consts';
-import {Observing} from './observable';
 import {TiniComponent} from './main';
+import {Watching} from './watch';
 
 export interface AppContext<AppConfigs extends Record<string, unknown>> {
   options?: AppOptions;
@@ -51,15 +51,15 @@ export type LHRegistry = Record<
   Record<LifecycleHooks, GlobalLifecycleHook[]>
 >;
 
-export type Observer = Observing['observe'];
-export type ObservableHandler<Value> = (
-  callback: ObservableCallback<Value>
-) => ObservableUnobserve;
-export type ObservableCallback<Value> = (
+export type Watcher = Watching['watch'];
+export type WatchableHandler<Value> = (
+  callback: WatchableCallback<Value>
+) => Unwatch;
+export type WatchableCallback<Value> = (
   newValue: Value,
   oldValue: Value
 ) => void;
-export type ObservableUnobserve = () => void;
+export type Unwatch = () => void;
 
 export interface SplashscreenComponent extends HTMLElement {
   hide?(): void;

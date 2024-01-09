@@ -1,45 +1,45 @@
 import {ReactiveController, ReactiveControllerHost} from 'lit';
 
-import {ObservableCallback, ObservableUnobserve} from './types';
+import {WatchableCallback, Unwatch} from './types';
 
-export class Observing implements ReactiveController {
-  unobserves: ObservableUnobserve[] = [];
+export class Watching implements ReactiveController {
+  unwatches: Unwatch[] = [];
 
   constructor(host: ReactiveControllerHost) {
     host.addController(this);
   }
 
-  observe(...unobserves: ObservableUnobserve[]) {
-    if (unobserves.length) unobserves.push(...this.unobserves);
+  watch(...unwatches: Unwatch[]) {
+    if (unwatches.length) this.unwatches.push(...unwatches);
     return this;
   }
 
   hostDisconnected() {
-    this.unobserves.forEach(unsubscribe => unsubscribe());
-    this.unobserves = [];
+    this.unwatches.forEach(unwatch => unwatch());
+    this.unwatches = [];
   }
 }
 
-export function Observable(handlerName?: string, skipInitial?: boolean) {
+export function Watchable(handlerName?: string, skipInitial?: boolean) {
   return function (prototype: any, propertyName: string) {
     const valueKey = `___${propertyName}`;
-    const handlerKey = handlerName || `${propertyName}Changed`;
-    const callbacks: Map<symbol, ObservableCallback<unknown>> = new Map();
+    const handlerKey = handlerName || `${propertyName}Changes`;
+    const callbacks: Map<symbol, WatchableCallback<unknown>> = new Map();
     Object.defineProperty(prototype, valueKey, {
-      value: undefined,
+      value: prototype[propertyName],
       writable: true,
     });
     Object.defineProperty(prototype, handlerKey, {
-      value: (callback: ObservableCallback<unknown>) => {
+      value: (callback: WatchableCallback<unknown>) => {
         // initial
         const currentVal = prototype[valueKey];
         if (!skipInitial && currentVal !== undefined) {
           callback(currentVal, undefined);
         }
-        // add callback & return unobserve
-        const subscriptionId = Symbol();
-        callbacks.set(subscriptionId, callback);
-        return () => callbacks.delete(subscriptionId);
+        // add callback & return unwatch
+        const callbackId = Symbol();
+        callbacks.set(callbackId, callback);
+        return () => callbacks.delete(callbackId);
       },
     });
     Object.defineProperty(prototype, propertyName, {
@@ -51,21 +51,19 @@ export function Observable(handlerName?: string, skipInitial?: boolean) {
             ? oldValue
             : JSON.parse(JSON.stringify(oldValue));
         prototype[valueKey] = newValue;
-        callbacks.forEach(handler => handler?.(newValue, oldValue));
+        callbacks.forEach(callback => callback?.(newValue, oldValue));
       },
     });
   };
 }
 
-export function Observe() {
+export function Watch() {
   return function (prototype: any, propertyName: string) {
-    const observerKey = Symbol();
+    const watcherKey = Symbol();
     Object.defineProperty(prototype, propertyName, {
       get: function () {
-        const observing = (this[observerKey] ||= new Observing(
-          this
-        )) as Observing;
-        return observing.observe.bind(observing);
+        const watching = (this[watcherKey] ||= new Watching(this)) as Watching;
+        return watching.watch.bind(watching);
       },
     });
   };
