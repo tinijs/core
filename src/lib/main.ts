@@ -117,14 +117,21 @@ export class TiniComponent extends LitElement {
     // run hooks
     runGlobalHooks(LifecycleHooks.OnInit, this);
     const onInit = (this as typeof this & OnInit).onInit?.();
-    if (onInit?.then)
-      onInit.then(() => {
-        this.loaded = true;
-        runGlobalHooks(LifecycleHooks.OnReady, this);
-        (this as unknown as OnReady).onReady?.();
-      });
+    if (!onInit?.then) {
+      this.digestOnInit();
+    } else {
+      onInit.then(() => this.digestOnInit());
+    }
     // continue
     super.scheduleUpdate();
+  }
+
+  private digestOnInit() {
+    this.loaded = true;
+    setTimeout(() => {
+      runGlobalHooks(LifecycleHooks.OnReady, this);
+      (this as unknown as OnReady).onReady?.();
+    }, 0);
   }
 
   private getChildrenLifecyclePromise(
