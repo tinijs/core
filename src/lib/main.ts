@@ -120,8 +120,10 @@ export class TiniComponent extends LitElement {
     if (onInit?.then)
       onInit.then(() => {
         this.loaded = true;
-        runGlobalHooks(LifecycleHooks.OnReady, this);
-        (this as unknown as OnReady).onReady?.();
+        setTimeout(() => {
+          runGlobalHooks(LifecycleHooks.OnReady, this);
+          (this as unknown as OnReady).onReady?.();
+        }, 0);
       });
     // continue
     super.scheduleUpdate();
