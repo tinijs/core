@@ -74,23 +74,29 @@ export interface AppWithConfigs<AppConfigs extends Record<string, unknown>> {
 }
 
 export interface OnCreate {
-  onCreate(): void; // connectedCallback
+  onCreate(): void; // connectedCallback()
+}
+export interface OnDestroy {
+  onDestroy(): void; // disconnectedCallback()
 }
 export interface OnInit {
   onInit(): void | Promise<void>;
 }
 export interface OnReady {
-  onReady(changedProperties: PropertyValues<unknown>): void; // firstUpdated
+  onReady(): void;
+}
+export interface OnChanges {
+  onChanges(changedProperties: PropertyValues<unknown>): void; // willUpdate()
+}
+export interface OnFirstRender {
+  onFirstRender(changedProperties: PropertyValues<unknown>): void; // firstUpdated()
+}
+export interface OnRenders {
+  onRenders(changedProperties: PropertyValues<unknown>): void; // updated()
+}
+export interface OnChildrenRender {
+  onChildrenRender(): void; // children first render
 }
 export interface OnChildrenReady {
   onChildrenReady(): void;
-}
-export interface OnChanges {
-  onChanges(changedProperties: PropertyValues<unknown>): void; // willUpdate
-}
-export interface OnRenders {
-  onRenders(changedProperties: PropertyValues<unknown>): void; // updated
-}
-export interface OnDestroy {
-  onDestroy(): void; // disconnectedCallback
 }

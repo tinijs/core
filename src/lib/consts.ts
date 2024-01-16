@@ -31,10 +31,12 @@ export enum ComponentTypes {
 
 export enum LifecycleHooks {
   OnCreate = 'onCreate',
+  OnDestroy = 'onDestroy',
   OnInit = 'onInit',
   OnReady = 'onReady',
-  OnChildrenReady = 'onChildrenReady',
   OnChanges = 'onChanges',
+  OnFirstRender = 'onFirstRender',
   OnRenders = 'onRenders',
-  OnDestroy = 'onDestroy',
+  OnChildrenRender = 'onChildrenRender',
+  OnChildrenReady = 'onChildrenReady',
 }

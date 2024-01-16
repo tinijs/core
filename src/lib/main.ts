@@ -5,9 +5,11 @@ import {
   OnCreate,
   OnDestroy,
   OnInit,
-  OnChanges,
-  OnRenders,
   OnReady,
+  OnChanges,
+  OnFirstRender,
+  OnRenders,
+  OnChildrenRender,
   OnChildrenReady,
 } from './types';
 import {LifecycleHooks} from './consts';
@@ -57,26 +59,21 @@ export class TiniComponent extends LitElement {
     const children = root.querySelectorAll(
       '[await]'
     ) as unknown as TiniComponent[];
-    if (children.length) {
-      const childUpdatedPromises = Array.from(children)
-        .filter(item => !!item?.childrenFirstUpdated)
-        .map(item => {
-          let resolveSchedule = () => {};
-          const originalchildrenFirstUpdated = item.childrenFirstUpdated;
-          item.childrenFirstUpdated = () => {
-            originalchildrenFirstUpdated.apply(item);
-            resolveSchedule();
-          };
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          return new Promise(resolve => (resolveSchedule = resolve as any));
-        });
-      Promise.all(childUpdatedPromises).then(() => this.childrenFirstUpdated());
+    if (!children.length) {
+      this.childrenRender();
+      this.childrenReady();
     } else {
-      this.childrenFirstUpdated();
+      const childrenList = Array.from(children);
+      this.getChildrenLifecyclePromise(childrenList, 'childrenRender').then(
+        () => this.childrenRender()
+      );
+      this.getChildrenLifecyclePromise(childrenList, 'childrenReady').then(() =>
+        this.childrenReady()
+      );
     }
     // run hooks
-    runGlobalHooks(LifecycleHooks.OnReady, this);
-    (this as typeof this & OnReady).onReady?.(changedProperties);
+    runGlobalHooks(LifecycleHooks.OnFirstRender, this);
+    (this as typeof this & OnFirstRender).onFirstRender?.(changedProperties);
   }
 
   protected override updated(changedProperties: PropertyValues<this>) {
@@ -84,7 +81,12 @@ export class TiniComponent extends LitElement {
     (this as typeof this & OnRenders).onRenders?.(changedProperties);
   }
 
-  private childrenFirstUpdated() {
+  private childrenRender() {
+    runGlobalHooks(LifecycleHooks.OnChildrenRender, this);
+    (this as typeof this & OnChildrenRender).onChildrenRender?.();
+  }
+
+  private childrenReady() {
     runGlobalHooks(LifecycleHooks.OnChildrenReady, this);
     (this as typeof this & OnChildrenReady).onChildrenReady?.();
   }
@@ -96,25 +98,49 @@ export class TiniComponent extends LitElement {
     }
     // B: no dependencies
     else if (!this.pendingDependencies?.length) {
-      await this.digestDI();
+      this.digestDI();
     }
     // C: has dependencies
     else {
       for (let i = 0; i < this.pendingDependencies.length; i++) {
         await this.pendingDependencies[i]();
       }
-      await this.digestDI();
+      this.digestDI();
     }
   }
 
-  private async digestDI() {
+  private digestDI() {
     this.initialized = true;
     this.pendingDependencies = [];
     // run hooks
-    await (this as typeof this & OnInit).onInit?.();
     runGlobalHooks(LifecycleHooks.OnInit, this);
+    const onInit = (this as typeof this & OnInit).onInit?.();
+    if (onInit?.then)
+      onInit.then(() => {
+        runGlobalHooks(LifecycleHooks.OnReady, this);
+        (this as unknown as OnReady).onReady?.();
+      });
     // continue
     super.scheduleUpdate();
+  }
+
+  private getChildrenLifecyclePromise(
+    children: TiniComponent[],
+    hookName: 'childrenRender' | 'childrenReady'
+  ) {
+    const promises = children
+      .filter(item => !!item[hookName])
+      .map(item => {
+        let resolve = () => {};
+        const original = item[hookName];
+        item[hookName] = () => {
+          original.call(item);
+          resolve();
+        };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return new Promise(r => (resolve = r as any));
+      });
+    return Promise.all(promises);
   }
 
   private subscribeStore() {
