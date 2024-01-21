@@ -26,11 +26,9 @@ export class TiniComponent extends LitElement {
   private initialized = false;
   private pendingDependencies?: Array<() => Promise<unknown>>;
   private storeManager?: {
-    pending: Array<[any, string, string]>;
+    pending: Array<[any, string, string, boolean]>;
     unsubscribes: Array<() => void>;
   };
-
-  @state() loaded = false; // mainly for pages to indicate if necessary data is loaded
 
   connectedCallback() {
     super.connectedCallback();
@@ -127,7 +125,6 @@ export class TiniComponent extends LitElement {
   }
 
   private digestOnInit() {
-    this.loaded = true;
     setTimeout(() => {
       runGlobalHooks(LifecycleHooks.OnReady, this);
       (this as unknown as OnReady).onReady?.();
@@ -156,13 +153,15 @@ export class TiniComponent extends LitElement {
   private subscribeStore() {
     if (!this.storeManager?.pending?.length) return;
     const unsubscribes = (this.storeManager.unsubscribes ||= []);
-    this.storeManager.pending.forEach(([store, stateKey, propertyName]) => {
-      const unsubscribe = store.subscribe(
-        stateKey,
-        (value: unknown) => ((this as any)[propertyName] = value)
-      );
-      unsubscribes.push(unsubscribe);
-    });
+    this.storeManager.pending.forEach(
+      ([store, stateKey, propertyName, reactive]) => {
+        const unsubscribe = store.subscribe(stateKey, (value: unknown) => {
+          (this as any)[propertyName] = value;
+          if (reactive) this.requestUpdate();
+        });
+        unsubscribes.push(unsubscribe);
+      }
+    );
   }
 
   private unsubscribeStore() {
