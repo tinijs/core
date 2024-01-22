@@ -40,3 +40,10 @@ export enum LifecycleHooks {
   OnChildrenRender = 'onChildrenRender',
   OnChildrenReady = 'onChildrenReady',
 }
+
+export enum RenderStatuses {
+  Loading = 'loading',
+  Empty = 'empty',
+  Error = 'error',
+  Fulfilled = 'fulfilled',
+}
