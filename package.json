@@ -45,7 +45,8 @@
     "lit": "^3.1.0"
   },
   "dependencies": {
-    "tinijs": "^0.15.0"
+    "nanoid": "^5.0.4",
+    "tinijs": "file:../tinijs/tinijs-0.15.0.tgz"
   },
   "devDependencies": {
     "@types/node": "^20.9.4",

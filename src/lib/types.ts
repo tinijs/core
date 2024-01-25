@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {PropertyValues} from 'lit';
+import {PropertyValues, TemplateResult, nothing} from 'lit';
 import {ThemingOptions, RegisterComponentsList, UIOptions} from 'tinijs';
 
 import {TINI_APP_CONTEXT, ComponentTypes, LifecycleHooks} from './consts';
@@ -99,4 +99,13 @@ export interface OnChildrenRender {
 }
 export interface OnChildrenReady {
   onChildrenReady(): void;
+}
+
+export type RenderData<Type> = Type | null | undefined;
+export type RenderDataOrError<Type> = RenderData<Type> | Error;
+export interface RenderTemplates<Template = TemplateResult | typeof nothing> {
+  loading?: () => Template;
+  empty?: () => Template;
+  error?: (dependencies: RenderDataOrError<unknown>[]) => Template;
+  main: (dependencies: RenderDataOrError<unknown>[]) => Template;
 }
