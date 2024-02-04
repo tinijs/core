@@ -29,7 +29,7 @@ export interface ComponentOptions<ThemeId extends string> {
 export type DependencyProvider = () => Promise<any>;
 export interface DependencyDef {
   provider: DependencyProvider;
-  deps?: string[];
+  deps?: (string | (() => unknown))[];
 }
 export type DependencyProviders = Record<
   string,

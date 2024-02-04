@@ -87,17 +87,22 @@ export function App(options: AppOptions = {}) {
         // already initialized
         if (result) return;
         // resolve deps
-        const depInstances: Object[] = [];
+        const depInstances: unknown[] = [];
         if (deps?.length) {
           for (let j = 0; j < deps.length; j++) {
-            const depId = deps[j];
-            let depInstance = dependencyRegistry.instances.get(depId);
-            if (!depInstance) {
-              const theDepRegister = dependencyRegistry.registers.get(depId);
-              if (!theDepRegister) throw NO_REGISTER_ERROR(depId);
-              depInstance = await theDepRegister();
+            const depIdOrGetter = deps[j];
+            if (depIdOrGetter instanceof Function) {
+              depInstances.push(depIdOrGetter());
+            } else {
+              let depInstance = dependencyRegistry.instances.get(depIdOrGetter);
+              if (!depInstance) {
+                const theDepRegister =
+                  dependencyRegistry.registers.get(depIdOrGetter);
+                if (!theDepRegister) throw NO_REGISTER_ERROR(depIdOrGetter);
+                depInstance = await theDepRegister();
+              }
+              depInstances.push(depInstance);
             }
-            depInstances.push(depInstance);
           }
         }
         // result
