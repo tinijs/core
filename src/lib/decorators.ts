@@ -111,11 +111,9 @@ export function App(options: AppOptions = {}) {
         result = !isClass(dependency)
           ? dependency
           : new dependency(...depInstances);
-        // <DEVELOPMENT>
         if (process.env.NODE_ENV === 'development') {
           ___checkForDIMissingDependencies(id, dependency, result);
         }
-        // </DEVELOPMENT>
         return dependencyRegistry.instances.set(id, result).get(id);
       };
       dependencyRegistry.registers.set(id, theRegister).get(id);

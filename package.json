@@ -5,6 +5,9 @@
   "author": "Lam Nhan",
   "homepage": "https://tinijs.dev",
   "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "publishConfig": {
     "access": "public"
   },
@@ -40,9 +43,6 @@
   },
   "bugs": {
     "url": "https://github.com/tinijs/core/issues"
-  },
-  "peerDependencies": {
-    "lit": "^3.1.0"
   },
   "dependencies": {
     "nanoid": "^5.0.4",
