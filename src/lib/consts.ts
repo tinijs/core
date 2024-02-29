@@ -13,7 +13,10 @@ export const GLOBAL_TINI = BASE_GLOBAL_TINI as typeof BASE_GLOBAL_TINI & {
 };
 export const TINI_APP_CONTEXT = ((
   GLOBAL_TINI as Record<string, unknown>
-).appContext ||= {}) as AppContext<Record<string, unknown>>;
+).appContext ||= {}) as AppContext<
+  Record<string, unknown>,
+  Record<string, unknown>
+>;
 
 export const APP_ROOT = 'app-root';
 export const SPLASHSCREEN_ID = 'splashscreen';

@@ -38,8 +38,11 @@ export function getDIRegistry() {
   }) as DIRegistry;
 }
 
-export function getContext<AppConfigs extends Record<string, unknown>>() {
-  return TINI_APP_CONTEXT as AppContext<AppConfigs>;
+export function getContext<
+  AppConfigs extends Record<string, unknown>,
+  ExtendedUIOptions extends Record<string, unknown>,
+>() {
+  return TINI_APP_CONTEXT as AppContext<AppConfigs, ExtendedUIOptions>;
 }
 
 export function getApp<AppRoot extends TiniComponent>() {

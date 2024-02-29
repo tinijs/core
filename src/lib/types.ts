@@ -6,14 +6,19 @@ import {TINI_APP_CONTEXT, ComponentTypes, LifecycleHooks} from './consts';
 import {TiniComponent} from './main';
 import {Watching} from './watch';
 
-export interface AppContext<AppConfigs extends Record<string, unknown>> {
-  options?: AppOptions;
+export interface AppContext<
+  AppConfigs extends Record<string, unknown>,
+  ExtendedUIOptions extends Record<string, unknown> = {},
+> {
+  options?: AppOptions<ExtendedUIOptions>;
   configs?: AppConfigs;
 }
 
-export interface AppOptions {
+export interface AppOptions<
+  ExtendedUIOptions extends Record<string, unknown> = {},
+> {
   components?: RegisterComponentsList;
-  uiOptions?: UIOptions;
+  uiOptions?: UIOptions<ExtendedUIOptions>;
   providers?: DependencyProviders;
   splashscreen?: 'auto' | 'manual';
   navIndicator?: boolean;

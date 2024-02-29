@@ -46,7 +46,9 @@ import {
 import {TiniComponent} from './main';
 import ___checkForDIMissingDependencies from './di-checker';
 
-export function App(options: AppOptions = {}) {
+export function App<ExtendedUIOptions extends Record<string, unknown> = {}>(
+  options: AppOptions<ExtendedUIOptions> = {}
+) {
   return function (target: any) {
     // set app options
     TINI_APP_CONTEXT.options = options;
