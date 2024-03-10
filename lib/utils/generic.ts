@@ -1,6 +1,6 @@
-import { LitElement, CSSResultOrNative} from 'lit';
+import {LitElement, CSSResultOrNative} from 'lit';
 
-import {ActiveTheme, ThemingOptions} from './theme';
+import {ActiveTheme, ThemingOptions} from './theme.js';
 
 export interface GenericThemingOptions {
   styling?: Record<string, string>;

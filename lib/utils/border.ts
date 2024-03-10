@@ -1,6 +1,6 @@
-import { ClassInfo } from 'lit/directives/class-map.js';
+import {ClassInfo} from 'lit/directives/class-map.js';
 
-import { VaryGroups, COLORS, BORDER_WIDTHS, BORDER_STYLES } from './varies';
+import {VaryGroups, COLORS, BORDER_WIDTHS, BORDER_STYLES} from './varies.js';
 
 export function borderToClassInfo(border?: string): ClassInfo {
   if (!border) return {};

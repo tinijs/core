@@ -1,4 +1,4 @@
-import { TiniElement } from "../classes/tini-element";
+import {TiniElement} from '../classes/tini-element.js';
 
 export type RegisterComponentsList = Array<
   CustomElementConstructor | [CustomElementConstructor, string]

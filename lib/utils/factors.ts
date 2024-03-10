@@ -1,6 +1,6 @@
-import { ClassInfo } from 'lit/directives/class-map.js';
+import {ClassInfo} from 'lit/directives/class-map.js';
 
-import { FACTORS } from './varies';
+import {FACTORS} from './varies.js';
 
 export function factorsToClassInfo(
   prefix: string,

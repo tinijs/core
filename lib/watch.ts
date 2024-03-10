@@ -1,6 +1,6 @@
 import {ReactiveController, ReactiveControllerHost} from 'lit';
 
-import {WatchableCallback, Unwatch} from './types';
+import {WatchableCallback, Unwatch} from './types.js';
 
 export class Watching implements ReactiveController {
   unwatches: Unwatch[] = [];

@@ -1,23 +1,22 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {CSSResult} from 'lit';
-import {ThemingOptions} from 'tinijs';
 
+import {GLOBAL_TINI, TINI_APP_CONTEXT} from './consts/global.js';
+import {ThemingOptions} from './utils/theme.js';
 import {
-  GLOBAL_TINI,
-  TINI_APP_CONTEXT,
   SPLASHSCREEN_ID,
   NO_APP_ERROR,
   ComponentTypes,
   LifecycleHooks,
-} from './consts';
+} from './consts.js';
 import {
   DIRegistry,
   LHRegistry,
   AppContext,
   GlobalLifecycleHook,
   SplashscreenComponent,
-} from './types';
-import {TiniComponent} from './main';
+} from './types.js';
+import {TiniComponent} from './main.js';
 
 export function asset(path: string) {
   return path;

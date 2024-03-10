@@ -5,16 +5,18 @@
   "author": "Lam Nhan",
   "homepage": "https://tinijs.dev",
   "license": "MIT",
+  "type": "module",
   "engines": {
     "node": ">=18.0.0"
   },
   "publishConfig": {
     "access": "public"
   },
-  "main": "src/public-api.js",
-  "types": "src/public-api.d.ts",
+  "exports": "./public-api.js",
+  "types": "./public-api.d.ts",
   "files": [
     "lib",
+    "public-api.*",
     "!**/*.ts",
     "**/*.d.ts",
     "!test"
@@ -46,12 +48,13 @@
     "url": "https://github.com/tinijs/core/issues"
   },
   "dependencies": {
-    "nanoid": "^5.0.4",
-    "tinijs": "file:../tinijs/tinijs-0.16.0.tgz"
+    "defu": "^6.1.4",
+    "lit": "^3.1.2",
+    "nanoid": "^5.0.6"
   },
   "devDependencies": {
-    "@types/node": "^20.9.4",
+    "@types/node": "^20.11.25",
     "gts": "^5.2.0",
-    "typescript": "~5.3.2"
+    "typescript": "~5.4.2"
   }
 }

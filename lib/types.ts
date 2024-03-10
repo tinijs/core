@@ -1,10 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {PropertyValues, TemplateResult, nothing} from 'lit';
-import {ThemingOptions, RegisterComponentsList, UIOptions} from 'tinijs';
 
-import {TINI_APP_CONTEXT, ComponentTypes, LifecycleHooks} from './consts';
-import {TiniComponent} from './main';
-import {Watching} from './watch';
+import {TINI_APP_CONTEXT} from './consts/global.js';
+import {RegisterComponentsList} from './utils/components.js';
+import {ThemingOptions} from './utils/theme.js';
+import {UIOptions} from './utils/ui.js';
+import {ComponentTypes, LifecycleHooks} from './consts.js';
+import {TiniComponent} from './main.js';
+import {Watching} from './watch.js';
 
 export interface AppContext<
   AppConfigs extends Record<string, unknown>,

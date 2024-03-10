@@ -5,18 +5,13 @@ import {
   ElementPart,
   directive,
 } from 'lit/async-directive.js';
-import {cache} from 'lit/directives/cache';
+import {cache} from 'lit/directives/cache.js';
 import {nanoid} from 'nanoid';
 
-import {
-  ActiveTheme,
-  getTheme,
-  processComponentStyles,
-  THEME_CHANGE_EVENT,
-} from 'tinijs';
-
-import {RenderDataOrError, RenderTemplates} from './types';
-import {RenderStatuses} from './consts';
+import {processComponentStyles} from './utils/styles.js';
+import {RenderDataOrError, RenderTemplates} from './types.js';
+import {ActiveTheme, THEME_CHANGE_EVENT, getTheme} from './utils/theme.js';
+import {RenderStatuses} from './consts.js';
 
 export function render<Type>(
   dependencies: RenderDataOrError<unknown>[],

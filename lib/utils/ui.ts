@@ -1,4 +1,4 @@
-import { GLOBAL_TINI } from '../consts/global';
+import {GLOBAL_TINI} from '../consts/global.js';
 
 export type UIIconOptions = {
   resolve?(icon: string, provider?: string): string;

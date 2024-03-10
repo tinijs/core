@@ -1,22 +1,5 @@
-import {GLOBAL_TINI as BASE_GLOBAL_TINI} from 'tinijs';
-
-import {DIRegistry, LHRegistry, AppContext} from './types';
-import {TiniComponent} from './main';
-
 export const MODULE_NAME = 'core';
 export const MODULE_ID = `tini:${MODULE_NAME}`;
-
-export const GLOBAL_TINI = BASE_GLOBAL_TINI as typeof BASE_GLOBAL_TINI & {
-  DIRegistry?: DIRegistry;
-  LHRegistry?: LHRegistry;
-  app?: TiniComponent;
-};
-export const TINI_APP_CONTEXT = ((
-  GLOBAL_TINI as Record<string, unknown>
-).appContext ||= {}) as AppContext<
-  Record<string, unknown>,
-  Record<string, unknown>
->;
 
 export const APP_ROOT = 'app-root';
 export const SPLASHSCREEN_ID = 'splashscreen';

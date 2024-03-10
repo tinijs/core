@@ -1,7 +1,7 @@
 import {CSSResultOrNative} from 'lit';
 
-import {GLOBAL_TINI} from '../consts/global';
-import {Breakpoints} from './varies';
+import {GLOBAL_TINI} from '../consts/global.js';
+import {Breakpoints} from './varies.js';
 
 export interface ActiveTheme {
   prevSoulId: string;

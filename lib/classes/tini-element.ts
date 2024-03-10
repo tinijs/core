@@ -10,13 +10,21 @@ import {property} from 'lit/decorators/property.js';
 import {ClassInfo} from 'lit/directives/class-map.js';
 import {defu} from 'defu';
 
-import {COMMON_COLORS_TO_COMMON_GRADIENTS, VaryGroups} from '../utils/varies';
-import { UIOptions, UIButtonOptions, getUIOptions } from '../utils/ui';
-import { THEME_CHANGE_EVENT, ThemingOptions, ActiveTheme, getTheme } from '../utils/theme';
-import { UnstableStates } from '../utils/components';
-import { EventForwarding, forwardEvents } from '../utils/events';
-import { adoptScripts } from '../utils/scripts';
-import { processComponentStyles } from '../utils/styles';
+import {
+  COMMON_COLORS_TO_COMMON_GRADIENTS,
+  VaryGroups,
+} from '../utils/varies.js';
+import {UIOptions, UIButtonOptions, getUIOptions} from '../utils/ui.js';
+import {
+  THEME_CHANGE_EVENT,
+  ThemingOptions,
+  ActiveTheme,
+  getTheme,
+} from '../utils/theme.js';
+import {UnstableStates} from '../utils/components.js';
+import {EventForwarding, forwardEvents} from '../utils/events.js';
+import {adoptScripts} from '../utils/scripts.js';
+import {processComponentStyles} from '../utils/styles.js';
 
 export interface ExtendRootClassesInput {
   raw?: ClassInfo;

@@ -1,6 +1,6 @@
-import { ClassInfo } from 'lit/directives/class-map.js';
+import {ClassInfo} from 'lit/directives/class-map.js';
 
-import { VaryGroups, COLORS, OUTLINE_WIDTHS, OUTLINE_STYLES } from './varies';
+import {VaryGroups, COLORS, OUTLINE_WIDTHS, OUTLINE_STYLES} from './varies.js';
 
 export function outlineToClassInfo(outline?: string): ClassInfo {
   if (!outline) return {};

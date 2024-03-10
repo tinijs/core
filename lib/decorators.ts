@@ -8,30 +8,25 @@ import {
   unsafeCSS,
 } from 'lit';
 import {customElement} from 'lit/decorators.js';
-import {
-  THEME_CHANGE_EVENT,
-  ActiveTheme,
-  registerComponents,
-  setUIOptions,
-  getTheme,
-  adoptScripts,
-  processComponentStyles,
-} from 'tinijs';
 
+import {GLOBAL_TINI, TINI_APP_CONTEXT} from './consts/global.js';
+import {setUIOptions} from './utils/ui.js';
+import {ActiveTheme, THEME_CHANGE_EVENT, getTheme} from './utils/theme.js';
+import {registerComponents} from './utils/components.js';
+import {processComponentStyles} from './utils/styles.js';
+import {adoptScripts} from './utils/scripts.js';
 import {
   AppOptions,
   ComponentOptions,
   DependencyDef,
   DependencyProvider,
-} from './types';
+} from './types.js';
 import {
-  GLOBAL_TINI,
-  TINI_APP_CONTEXT,
   APP_ROOT,
   ComponentTypes,
   LifecycleHooks,
   NO_REGISTER_ERROR,
-} from './consts';
+} from './consts.js';
 import {
   isClass,
   getDIRegistry,
@@ -42,9 +37,9 @@ import {
   getSplashscreen,
   hideSplashscreen,
   registerGlobalHook,
-} from './methods';
-import {TiniComponent} from './main';
-import ___checkForDIMissingDependencies from './di-checker';
+} from './methods.js';
+import {TiniComponent} from './main.js';
+import ___checkForDIMissingDependencies from './di-checker.js';
 
 export function App<ExtendedUIOptions extends Record<string, unknown> = {}>(
   options: AppOptions<ExtendedUIOptions> = {}

@@ -1,5 +1,8 @@
-import { TiniElement } from '../classes/tini-element';
-import { RegisterComponentsList, registerComponents } from '../utils/components';
+import {TiniElement} from '../classes/tini-element.js';
+import {
+  RegisterComponentsList,
+  registerComponents,
+} from '../utils/components.js';
 
 export function TiniElementComponents(items: RegisterComponentsList) {
   return function (target: typeof TiniElement) {

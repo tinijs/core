@@ -1,4 +1,4 @@
-import { ActiveTheme, ThemingOptions } from './theme';
+import {ActiveTheme, ThemingOptions} from './theme.js';
 
 export function adoptScripts(
   host: HTMLElement,

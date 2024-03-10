@@ -1,4 +1,4 @@
-import {isClass} from './methods';
+import {isClass} from './methods.js';
 
 export default function (id: string, dependency: any, instance: any) {
   const paramsMatchingArr = dependency

@@ -1,6 +1,6 @@
 import {CSSResultOrNative} from 'lit';
 
-import { ActiveTheme } from './theme';
+import {ActiveTheme} from './theme.js';
 
 export function processComponentStyles(
   allStyles: Array<string | CSSResultOrNative>,

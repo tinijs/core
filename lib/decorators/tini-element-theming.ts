@@ -1,5 +1,5 @@
-import {TiniElement} from '../classes/tini-element';
-import {ThemingOptions} from '../utils/theme';
+import {TiniElement} from '../classes/tini-element.js';
+import {ThemingOptions} from '../utils/theme.js';
 
 export function TiniElementTheming<ThemeId extends string>(
   theming: ThemingOptions<ThemeId>

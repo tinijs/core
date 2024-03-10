@@ -11,9 +11,9 @@ import {
   OnRenders,
   OnChildrenRender,
   OnChildrenReady,
-} from './types';
-import {LifecycleHooks} from './consts';
-import {runGlobalHooks} from './methods';
+} from './types.js';
+import {LifecycleHooks} from './consts.js';
+import {runGlobalHooks} from './methods.js';
 
 export const Input = property;
 export const Reactive = state;
