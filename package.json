@@ -14,9 +14,10 @@
   "main": "src/public-api.js",
   "types": "src/public-api.d.ts",
   "files": [
-    "src",
+    "lib",
     "!**/*.ts",
-    "**/*.d.ts"
+    "**/*.d.ts",
+    "!test"
   ],
   "keywords": [
     "Javascript",

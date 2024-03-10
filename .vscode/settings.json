@@ -1,8 +1,7 @@
 {
   "files.exclude": {
     ".vscode/": true,
-    "src/**/*.js": true,
-    "test/**/*.js": true,
+    "**/*.js": true,
     "**/*.d.ts": true,
     "**/*.map": true
   }

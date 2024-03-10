@@ -1,14 +1,14 @@
 {
   "extends": "./node_modules/gts/tsconfig-google.json",
   "compilerOptions": {
-    "module": "ESNext",
+    "target": "ESNext",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "lib": ["DOM", "ESNext"],
-    "moduleResolution": "node",
     "experimentalDecorators": true,
     "skipLibCheck": true
   },
   "include": [
-    "src/**/*.ts",
-    "test/**/*.ts"
+    "**/*.ts"
   ]
 }

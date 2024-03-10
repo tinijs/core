@@ -1,7 +1,6 @@
 .DS_Store
 node_modules/
-src/**/*.js
-test/**/*.js
+*.js
 *.map
 *.d.ts
 *.tgz
