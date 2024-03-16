@@ -3,12 +3,16 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "NodeNext",
-    "moduleResolution": "NodeNext",
     "lib": ["DOM", "ESNext"],
+    "outDir": "dist",
     "experimentalDecorators": true,
     "skipLibCheck": true
   },
   "include": [
-    "**/*.ts"
+    "**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
   ]
 }

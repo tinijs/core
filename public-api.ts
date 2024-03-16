@@ -27,6 +27,7 @@ export * from './lib/utils/theme.js';
 export * from './lib/utils/ui.js';
 export * from './lib/utils/varies.js';
 export * from './lib/utils/module.js';
+export * from './lib/utils/cli.js';
 
 export * from './lib/classes/tini-app.js';
 export * from './lib/classes/tini-element.js';

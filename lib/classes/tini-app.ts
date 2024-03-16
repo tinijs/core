@@ -1,11 +1,21 @@
 import {createHooks, HookCallback} from 'hookable';
 import {defu} from 'defu';
-import {loadConfig} from 'c12';
-import {Promisable} from 'type-fest';
+import initJiti, {JITI} from 'jiti';
 import {ProxifiedModule, loadFile, writeFile} from 'magicast';
 import {CheerioAPI} from 'cheerio';
+import {resolve} from 'pathe';
+import {pathExistsSync} from 'fs-extra/esm';
 
-import {loadModule} from '../utils/module.js';
+import {setupModules, ModuleConfig} from '../utils/module.js';
+import {CliExpansionConfig} from '../utils/cli.js';
+
+// @ts-ignore
+const jiti = initJiti(import.meta.url) as JITI;
+
+export type ConfigIntegration<
+  Local,
+  Options extends Record<string, unknown> = {},
+> = Array<string | Local | [string | Local, Options?]>;
 
 export interface Prebuilder {
   build: () => Promise<void>;
@@ -88,39 +98,30 @@ export interface BuildHooks {
   'build:before': () => ReturnType<HookCallback>;
   'build:after': () => ReturnType<HookCallback>;
 }
-export interface RuntimeHooks {}
+export interface RuntimeHooks {
+  'app:foo': () => ReturnType<HookCallback>;
+}
 export interface TiniConfigHooks
   extends CliHooks,
     PrebuildHooks,
     BuildHooks,
     RuntimeHooks {}
 
-export type TiniConfigModules = Array<
-  string | [string, any?] | ((tini: TiniApp) => Promisable<void>)
->;
+export type TiniConfigModules = ConfigIntegration<ModuleConfig>;
 
-export interface CliDocsOptions {}
-export interface CliNewOptions {}
-export interface CliDevOptions {}
-export interface CliBuildOptions {}
-export interface CliPreviewOptions {}
-export interface CliModuleOptions {}
 export interface CliGenerateOptions {
   componentPrefix?: string;
   generators?: Record<string, any>;
 }
-export interface CliCleanOptions {}
-export interface CliExpandOptions {}
 export interface TiniConfigCli {
-  docs?: false | CliDocsOptions;
-  new?: false | CliNewOptions;
-  dev?: false | CliDevOptions;
-  build?: false | CliBuildOptions;
-  preview?: false | CliPreviewOptions;
-  module?: false | CliModuleOptions;
+  docs?: false;
+  new?: false;
+  dev?: false;
   generate?: false | CliGenerateOptions;
-  clean?: false | CliCleanOptions;
-  expand?: Array<string | [string, CliExpandOptions?]>;
+  build?: false;
+  preview?: false;
+  module?: false;
+  expand?: ConfigIntegration<CliExpansionConfig>;
 }
 
 export interface TiniConfig {
@@ -135,62 +136,71 @@ export interface TiniConfig {
   cli?: TiniConfigCli;
 }
 
-export const MAIN_TINI_CONFIG_FILE = 'tini.config.ts';
-
 export async function getTiniApp() {
-  return TiniApp.globalInstance || defineTiniApp();
+  return TiniApp.globalInstance || defineTiniApp(await loadRawConfig());
 }
 
-export async function defineTiniApp(config?: TiniConfig) {
-  const tini = new TiniApp(config || (await loadRawConfig()));
+async function defineTiniApp(config: TiniConfig) {
+  const tiniApp = new TiniApp(config);
   // setup modules
-  if (tini.config.modules) {
-    for (const configModule of tini.config.modules) {
-      if (configModule instanceof Function) {
-        await configModule(tini);
-      } else {
-        const [packageName, moduleOptions] = !Array.isArray(configModule)
-          ? [configModule]
-          : configModule;
-        const tiniModule = await loadModule(packageName);
-        await tiniModule?.setup?.(
-          defu(tiniModule?.defaults, moduleOptions),
-          tini
-        );
-      }
-    }
-  }
+  await setupModules(tiniApp);
   // add hooks
-  if (tini.config.hooks) {
-    tini.hooks.addHooks(tini.config.hooks);
+  if (tiniApp.config.hooks) {
+    tiniApp.hooks.addHooks(tiniApp.config.hooks);
   }
   // result
-  return tini;
+  return tiniApp;
 }
 
 export function defineTiniConfig(config: Partial<TiniConfig>) {
   return config;
 }
 
+function getConfigFilePath() {
+  const tsFile = 'tini.config.ts';
+  const jsFile = 'tini.config.js';
+  const tsFilePath = resolve(tsFile);
+  const jsFilePath = resolve(jsFile);
+  const configFilePath = pathExistsSync(tsFilePath)
+    ? tsFilePath
+    : pathExistsSync(jsFilePath)
+    ? jsFilePath
+    : null;
+  return configFilePath;
+}
+
 async function loadRawConfig() {
-  const loadResult = await loadConfig({
-    name: 'tini',
-    defaultConfig: {
-      srcDir: 'app',
-      outDir: 'www',
-      tempDir: '.tini',
-    },
-  });
-  return loadResult.config as TiniConfig;
+  const defaultConfig: TiniConfig = {
+    srcDir: 'app',
+    outDir: 'www',
+    tempDir: '.tini',
+  };
+  const configFilePath = getConfigFilePath();
+  if (!configFilePath) {
+    return defaultConfig;
+  }
+  const {default: fileConfig = {}} = (await jiti.import(
+    configFilePath,
+    {}
+  )) as {
+    default?: TiniConfig;
+  };
+  return defu(defaultConfig, fileConfig);
 }
 
 export async function modifyTiniConfigFile(
   modifier: (
-    mod: ProxifiedModule<TiniConfig>
+    proxifiedModule: ProxifiedModule<TiniConfig>
   ) => Promise<ProxifiedModule<TiniConfig>>
 ) {
-  const mod = await modifier(await loadFile<TiniConfig>(MAIN_TINI_CONFIG_FILE));
-  return writeFile(mod, MAIN_TINI_CONFIG_FILE);
+  const configFilePath = getConfigFilePath();
+  if (!configFilePath) {
+    throw new Error('No Tini config file available in the current project.');
+  }
+  const proxifiedModule = await modifier(
+    await loadFile<TiniConfig>(configFilePath)
+  );
+  return writeFile(proxifiedModule, configFilePath);
 }
 
 export class TiniApp {

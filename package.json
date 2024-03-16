@@ -5,21 +5,19 @@
   "author": "Lam Nhan",
   "homepage": "https://tinijs.dev",
   "license": "MIT",
-  "type": "module",
   "engines": {
     "node": ">=18.0.0"
   },
   "publishConfig": {
     "access": "public"
   },
-  "exports": "./public-api.js",
-  "types": "./public-api.d.ts",
+  "type": "module",
+  "exports": {
+    ".": "./dist/public-api.js"
+  },
   "files": [
-    "lib",
-    "public-api.*",
-    "!**/*.ts",
-    "**/*.d.ts",
-    "!test"
+    "dist",
+    "!**/*.spec.*"
   ],
   "keywords": [
     "Javascript",
@@ -30,13 +28,14 @@
     "Vue",
     "React",
     "Svelte",
-    "ViteJS",
-    "NuxtJS",
-    "NextJS",
+    "Vite",
+    "Nuxt",
+    "Next",
     "SvelteKit"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "rimraf ./dist && tsc",
+    "test": "vitest run",
     "lint": "gts lint",
     "fix": "gts fix"
   },
@@ -48,10 +47,12 @@
     "url": "https://github.com/tinijs/core/issues"
   },
   "dependencies": {
-    "c12": "^1.10.0",
     "cheerio": "^1.0.0-rc.12",
+    "citty": "^0.1.6",
     "defu": "^6.1.4",
+    "fs-extra": "^11.2.0",
     "hookable": "^5.5.3",
+    "jiti": "^1.21.0",
     "lit": "^3.1.2",
     "magicast": "^0.3.3",
     "nanoid": "^5.0.6",
@@ -59,8 +60,11 @@
     "type-fest": "^4.12.0"
   },
   "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
     "@types/node": "^20.11.25",
     "gts": "^5.2.0",
-    "typescript": "~5.4.2"
+    "rimraf": "^5.0.5",
+    "typescript": "~5.4.2",
+    "vitest": "^1.4.0"
   }
 }
