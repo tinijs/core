@@ -32,18 +32,19 @@ export interface ExtendRootClassesInput {
   overridable?: Record<string, undefined | string>;
 }
 
-export interface ComponentMetas {
+export interface ComponentMetadata {
   colorOnlyScheme?: boolean;
+  mainNonRootSelector?: string;
   // dev only
   unstable?: UnstableStates;
   unstableMessage?: string;
+  warnAboutMissingBases?: string[];
 }
 
 export class TiniElement extends LitElement {
-  static readonly defaultTagName: string = 'tini-element';
   static readonly componentName: string = 'unnamed';
-  static readonly componentMetas: ComponentMetas = {};
-  static readonly mainNonRootSelector?: string;
+  static readonly defaultTagName: string = 'tini-element';
+  static readonly componentMetadata: ComponentMetadata = {};
   static readonly theming?: ThemingOptions<string>; // NOTE: only available by using the 'tini ui build' command (setted via the @TiniElementTheming() decorator)
 
   private uiOptions = getUIOptions();
@@ -193,7 +194,7 @@ export class TiniElement extends LitElement {
     if (referValue) return referValue;
     // refer gradient scheme
     if (
-      !(this.constructor as typeof TiniElement).componentMetas
+      !(this.constructor as typeof TiniElement).componentMetadata
         ?.colorOnlyScheme &&
       name === VaryGroups.Scheme &&
       themeOptions.referGradientScheme

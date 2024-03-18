@@ -3,11 +3,11 @@ import {pathExistsSync} from 'fs-extra/esm';
 import {Promisable} from 'type-fest';
 import {defu} from 'defu';
 
-import {TiniApp, TiniConfig} from '../classes/tini-app.js';
-
-export interface ModuleMeta {
-  name: string;
-}
+import {
+  TiniApp,
+  TiniConfig,
+  ConfigIntegrationMeta,
+} from '../classes/tini-app.js';
 
 export interface ModuleInit {
   copy?: Record<string, string>;
@@ -17,7 +17,7 @@ export interface ModuleInit {
 }
 
 export interface ModuleConfig<Options extends Record<string, unknown> = {}> {
-  meta: ModuleMeta;
+  meta: ConfigIntegrationMeta;
   setup: (options: Options, tini: TiniApp) => Promisable<void>;
   init?: (tiniConfig: TiniConfig) => ModuleInit;
   defaults?: Options;
@@ -42,7 +42,13 @@ export async function setupModules(tiniApp: TiniApp) {
 }
 
 export async function loadVendorModule(packageName: string) {
-  const entryPath = resolve('node_modules', packageName, 'dist', 'module', 'index.js');
+  const entryPath = resolve(
+    'node_modules',
+    packageName,
+    'dist',
+    'module',
+    'index.js'
+  );
   if (!pathExistsSync(entryPath)) return null;
   const {default: defaulExport} = await import(entryPath);
   if (!defaulExport?.meta || !defaulExport?.setup) return null;

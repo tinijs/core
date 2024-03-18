@@ -13,7 +13,7 @@ export function ___checkForUnstableComponent(
   tagName: string,
   {
     componentName = 'unknown',
-    componentMetas: {unstable, unstableMessage},
+    componentMetadata: {unstable, unstableMessage},
   }: typeof TiniElement
 ) {
   if (unstable) {

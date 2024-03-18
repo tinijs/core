@@ -1,3 +1,5 @@
+import {TiniElement} from '../classes/tini-element.js';
+
 export interface EventForwarding {
   name: string;
   rename?: string;
@@ -28,8 +30,8 @@ export function forwardEvents(
           })();
     const {name, rename, keepPropagation, preventDefault, dispatchOptions} =
       forwarding;
-    const mainNonRootSelector = (host.constructor as any)
-      .mainNonRootSelector as undefined | string;
+    const mainNonRootSelector = (host.constructor as typeof TiniElement)
+      .componentMetadata.mainNonRootSelector as undefined | string;
     const target =
       !forwarding.target && mainNonRootSelector
         ? mainNonRootSelector

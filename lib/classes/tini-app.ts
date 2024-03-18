@@ -12,6 +12,9 @@ import {CliExpansionConfig} from '../utils/cli.js';
 // @ts-ignore
 const jiti = initJiti(import.meta.url) as JITI;
 
+export interface ConfigIntegrationMeta {
+  name: string;
+}
 export type ConfigIntegration<
   Local,
   Options extends Record<string, unknown> = {},
@@ -124,6 +127,29 @@ export interface TiniConfigCli {
   expand?: ConfigIntegration<CliExpansionConfig>;
 }
 
+export interface TiniConfigUi {
+  sources: string[];
+  pick: {
+    families: Record<
+      string,
+      {
+        skins: string[];
+      }
+    >;
+    bases: string[];
+  };
+  icons?: Array<
+    | string
+    | {
+        dir: string;
+        subs?: Array<string | {name: string; suffix?: boolean | string}>;
+        transform?: () => any;
+      }
+  >;
+  outDir?: string;
+  react?: boolean;
+}
+
 export interface TiniConfig {
   srcDir: string;
   outDir: string;
@@ -134,13 +160,18 @@ export interface TiniConfig {
   hooks?: Partial<TiniConfigHooks>;
   modules?: TiniConfigModules;
   cli?: TiniConfigCli;
+  ui?: TiniConfigUi;
 }
 
 export async function getTiniApp() {
+  console.log('getTiniApp()');
+
   return TiniApp.globalInstance || defineTiniApp(await loadRawConfig());
 }
 
 async function defineTiniApp(config: TiniConfig) {
+  console.log('defineTiniApp()');
+
   const tiniApp = new TiniApp(config);
   // setup modules
   await setupModules(tiniApp);
