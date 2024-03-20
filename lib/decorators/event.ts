@@ -1,4 +1,4 @@
-import {TiniComponent} from './main.js';
+import {TiniComponent} from '../classes/tini-component.js';
 
 export class EventEmitter<Payload> {
   private host: TiniComponent;

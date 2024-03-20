@@ -4,10 +4,10 @@ import {Promisable} from 'type-fest';
 import {defu} from 'defu';
 
 import {
-  TiniApp,
+  TiniProject,
   TiniConfig,
-  ConfigIntegrationMeta,
-} from '../classes/tini-app.js';
+  TiniIntegrationMeta,
+} from '../classes/tini-project.js';
 
 export interface ModuleInit {
   copy?: Record<string, string>;
@@ -17,8 +17,8 @@ export interface ModuleInit {
 }
 
 export interface ModuleConfig<Options extends Record<string, unknown> = {}> {
-  meta: ConfigIntegrationMeta;
-  setup: (options: Options, tini: TiniApp) => Promisable<void>;
+  meta: TiniIntegrationMeta;
+  setup: (options: Options, tini: TiniProject) => Promisable<void>;
   init?: (tiniConfig: TiniConfig) => ModuleInit;
   defaults?: Options;
 }
@@ -29,15 +29,18 @@ export function defineTiniModule<Options extends Record<string, unknown>>(
   return config;
 }
 
-export async function setupModules(tiniApp: TiniApp) {
-  const modulesConfig = tiniApp.config.modules || [];
+export async function setupModules(tiniProject: TiniProject) {
+  const modulesConfig = tiniProject.config.modules || [];
   for (const item of modulesConfig) {
     const [localOrVendor, options = {}] = item instanceof Array ? item : [item];
     const moduleConfig =
       localOrVendor instanceof Object
         ? localOrVendor
         : await loadVendorModule(localOrVendor);
-    await moduleConfig?.setup(defu(moduleConfig.defaults, options), tiniApp);
+    await moduleConfig?.setup(
+      defu(moduleConfig.defaults, options),
+      tiniProject
+    );
   }
 }
 

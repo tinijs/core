@@ -1,26 +1,115 @@
-import {LitElement, PropertyValues} from 'lit';
-import {property, state} from 'lit/decorators.js';
+import {PropertyValues} from 'lit';
 
-import {
-  OnCreate,
-  OnDestroy,
-  OnInit,
-  OnReady,
-  OnChanges,
-  OnFirstRender,
-  OnRenders,
-  OnChildrenRender,
-  OnChildrenReady,
-} from './types.js';
-import {LifecycleHooks} from './consts.js';
-import {runGlobalHooks} from './methods.js';
+import {Theming} from './ui-manager.js';
+import {TiniElement} from './tini-element.js';
 
-export const Input = property;
-export const Reactive = state;
+import {runGlobalHooks} from '../utils/app.js';
+import {RegisterComponentsList} from '../utils/components.js';
 
-export class TiniComponent extends LitElement {
-  static readonly defaultTagName: string = 'tini-component';
-  static readonly componentName: string = 'unnamed';
+export enum ComponentTypes {
+  App = 'app',
+  Layout = 'layout',
+  Page = 'page',
+  Component = 'component',
+}
+
+export enum LifecycleHooks {
+  OnCreate = 'onCreate',
+  OnDestroy = 'onDestroy',
+  OnInit = 'onInit',
+  OnReady = 'onReady',
+  OnChanges = 'onChanges',
+  OnFirstRender = 'onFirstRender',
+  OnRenders = 'onRenders',
+  OnChildrenRender = 'onChildrenRender',
+  OnChildrenReady = 'onChildrenReady',
+}
+
+export interface ClientApp<AppRoot = TiniComponent> {
+  rootElement: AppRoot;
+  config?: Record<string, unknown>;
+  options?: AppOptions;
+}
+
+export interface AppOptions {
+  components?: RegisterComponentsList;
+  providers?: DependencyProviders;
+  splashscreen?: 'auto' | 'manual';
+  navIndicator?: boolean;
+}
+
+export interface ComponentOptions {
+  name?: string;
+  type?: ComponentTypes;
+  components?: RegisterComponentsList;
+  theming?: Theming;
+}
+
+export type DependencyProvider = () => Promise<any>;
+export interface DependencyDef {
+  provider: DependencyProvider;
+  deps?: (string | (() => unknown))[];
+}
+export type DependencyProviders = Record<
+  string,
+  DependencyProvider | DependencyDef
+>;
+export interface DIRegistry {
+  registers: Map<string, () => Promise<any>>;
+  instances: Map<string, any>;
+  awaiters: Array<() => any>;
+}
+
+export type GlobalLifecycleHook = (data: {
+  source: TiniComponent;
+  clientApp: ClientApp;
+}) => void;
+export type LHRegistry = Record<
+  ComponentTypes,
+  Record<LifecycleHooks, GlobalLifecycleHook[]>
+>;
+
+export interface SplashscreenComponent extends HTMLElement {
+  hide?(): void;
+}
+
+export interface AppWithOptions {
+  options: AppOptions;
+}
+
+export interface AppWithConfigs<AppConfigs extends Record<string, unknown>> {
+  configs: AppConfigs;
+}
+
+export interface OnCreate {
+  onCreate(): void; // connectedCallback()
+}
+export interface OnDestroy {
+  onDestroy(): void; // disconnectedCallback()
+}
+export interface OnInit {
+  onInit(): void | Promise<void>;
+}
+export interface OnReady {
+  onReady(): void;
+}
+export interface OnChanges {
+  onChanges(changedProperties: PropertyValues<unknown>): void; // willUpdate()
+}
+export interface OnFirstRender {
+  onFirstRender(changedProperties: PropertyValues<unknown>): void; // firstUpdated()
+}
+export interface OnRenders {
+  onRenders(changedProperties: PropertyValues<unknown>): void; // updated()
+}
+export interface OnChildrenRender {
+  onChildrenRender(): void; // children first render
+}
+export interface OnChildrenReady {
+  onChildrenReady(): void;
+}
+
+export class TiniComponent extends TiniElement {
   static readonly componentType: string = 'component';
 
   private initialized = false;
@@ -49,11 +138,13 @@ export class TiniComponent extends LitElement {
   }
 
   protected override willUpdate(changedProperties: PropertyValues<this>) {
+    super.willUpdate(changedProperties);
     runGlobalHooks(LifecycleHooks.OnChanges, this);
     (this as typeof this & OnChanges).onChanges?.(changedProperties);
   }
 
   protected override firstUpdated(changedProperties: PropertyValues<this>) {
+    super.firstUpdated(changedProperties);
     // process children rendering
     const root = this.shadowRoot as ShadowRoot;
     const children = root.querySelectorAll(
@@ -77,6 +168,7 @@ export class TiniComponent extends LitElement {
   }
 
   protected override updated(changedProperties: PropertyValues<this>) {
+    super.updated(changedProperties);
     runGlobalHooks(LifecycleHooks.OnRenders, this);
     (this as typeof this & OnRenders).onRenders?.(changedProperties);
   }

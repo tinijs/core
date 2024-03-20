@@ -1,11 +1,14 @@
 import {LitElement, CSSResultOrNative} from 'lit';
 
-import {ActiveTheme, ThemingOptions} from './theme.js';
+import {ActiveTheme, Theming} from '../classes/ui-manager.js';
 
-export interface GenericThemingOptions {
-  styling?: Record<string, string>;
-  scripting?: ThemingOptions<string>['scripting'];
-}
+export type GenericTheming = Record<
+  string,
+  {
+    styles: string;
+    scripts: Theming[0]['scripts'];
+  }
+>;
 
 export function genericComponentProcessAttributes<
   Component extends LitElement & {
@@ -57,14 +60,14 @@ export function genericComponentBuildStyleTextFromAttributes(
   `;
 }
 
-export function genericComponentBuildStyleTextFromStyling(
-  styling: undefined | GenericThemingOptions['styling'],
+export function genericComponentBuildStyleTextFromTheming(
+  theming: undefined | GenericTheming,
   themeId: undefined | string
 ) {
-  if (!styling || !themeId) return '';
-  if (styling[themeId]) return styling[themeId];
-  const soulId = themeId.split('/')[0];
-  return !styling[soulId] ? '' : styling[soulId];
+  if (!theming || !themeId) return '';
+  if (theming[themeId]?.styles) return theming[themeId]?.styles;
+  const [familyId] = themeId.split('/');
+  return theming[familyId]?.styles || '';
 }
 
 export function genericComponentBuildAndCacheStyles<

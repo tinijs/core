@@ -1,21 +1,23 @@
-import {createHooks, HookCallback} from 'hookable';
-import {defu} from 'defu';
-import initJiti, {JITI} from 'jiti';
+import {HookCallback, createHooks} from 'hookable';
 import {ProxifiedModule, loadFile, writeFile} from 'magicast';
 import {CheerioAPI} from 'cheerio';
+import {defu} from 'defu';
+import initJiti, {JITI} from 'jiti';
 import {resolve} from 'pathe';
 import {pathExistsSync} from 'fs-extra/esm';
 
-import {setupModules, ModuleConfig} from '../utils/module.js';
+import {GLOBAL_TINI} from '../consts/global.js';
+import {ModuleConfig, setupModules} from '../utils/module.js';
 import {CliExpansionConfig} from '../utils/cli.js';
 
 // @ts-ignore
 const jiti = initJiti(import.meta.url) as JITI;
 
-export interface ConfigIntegrationMeta {
+export interface TiniIntegrationMeta {
   name: string;
 }
-export type ConfigIntegration<
+
+export type TiniIntegration<
   Local,
   Options extends Record<string, unknown> = {},
 > = Array<string | Local | [string | Local, Options?]>;
@@ -63,7 +65,7 @@ export interface TiniConfigPrebuild {
   prebuilder?: OfficialPrebuilders;
   options?: Record<string, any>;
 }
-export type TiniConfigCustomPrebuild = (tiniApp: TiniApp) => Prebuilder;
+export type TiniConfigCustomPrebuild = (tiniProject: TiniProject) => Prebuilder;
 
 export enum OfficialBuilders {
   Parcel = 'parcel',
@@ -74,7 +76,7 @@ export interface TiniConfigBuild {
   builder?: OfficialBuilders;
   options?: Record<string, any>;
 }
-export type TiniConfigCustomBuild = (tiniApp: TiniApp) => Builder;
+export type TiniConfigCustomBuild = (tiniProject: TiniProject) => Builder;
 
 export interface CliHooks {
   'cli:setup': () => ReturnType<HookCallback>;
@@ -110,7 +112,7 @@ export interface TiniConfigHooks
     BuildHooks,
     RuntimeHooks {}
 
-export type TiniConfigModules = ConfigIntegration<ModuleConfig>;
+export type TiniConfigModules = TiniIntegration<ModuleConfig>;
 
 export interface CliGenerateOptions {
   componentPrefix?: string;
@@ -124,7 +126,7 @@ export interface TiniConfigCli {
   build?: false;
   preview?: false;
   module?: false;
-  expand?: ConfigIntegration<CliExpansionConfig>;
+  expand?: TiniIntegration<CliExpansionConfig>;
 }
 
 export interface TiniConfigUi {
@@ -163,24 +165,26 @@ export interface TiniConfig {
   ui?: TiniConfigUi;
 }
 
-export async function getTiniApp() {
-  console.log('getTiniApp()');
+export async function getTiniProject(): Promise<TiniProject> {
+  console.log('getTiniProject()');
 
-  return TiniApp.globalInstance || defineTiniApp(await loadRawConfig());
+  return (GLOBAL_TINI.tiniProject ||= await defineTiniProject(
+    await loadConfig()
+  ));
 }
 
-async function defineTiniApp(config: TiniConfig) {
-  console.log('defineTiniApp()');
+async function defineTiniProject(config: TiniConfig) {
+  console.log('defineTiniProject()');
 
-  const tiniApp = new TiniApp(config);
+  const tiniProject = new TiniProject(config);
   // setup modules
-  await setupModules(tiniApp);
+  await setupModules(tiniProject);
   // add hooks
-  if (tiniApp.config.hooks) {
-    tiniApp.hooks.addHooks(tiniApp.config.hooks);
+  if (tiniProject.config.hooks) {
+    tiniProject.hooks.addHooks(tiniProject.config.hooks);
   }
   // result
-  return tiniApp;
+  return tiniProject;
 }
 
 export function defineTiniConfig(config: Partial<TiniConfig>) {
@@ -200,7 +204,7 @@ function getConfigFilePath() {
   return configFilePath;
 }
 
-async function loadRawConfig() {
+async function loadConfig() {
   const defaultConfig: TiniConfig = {
     srcDir: 'app',
     outDir: 'www',
@@ -234,10 +238,8 @@ export async function modifyTiniConfigFile(
   return writeFile(proxifiedModule, configFilePath);
 }
 
-export class TiniApp {
-  static globalInstance?: TiniApp;
-
-  constructor(public config: TiniConfig) {}
+export class TiniProject {
+  constructor(public readonly config: TiniConfig) {}
 
   readonly hooks = createHooks<TiniConfigHooks>();
   readonly hook = this.hooks.hook;

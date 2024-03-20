@@ -2,6 +2,7 @@ import {
   LitElement,
   PropertyValues,
   CSSResultOrNative,
+  TemplateResult,
   unsafeCSS,
   getCompatibleStyle,
   adoptStyles,
@@ -11,20 +12,25 @@ import {ClassInfo} from 'lit/directives/class-map.js';
 import {defu} from 'defu';
 
 import {
+  THEME_CHANGE_EVENT,
+  UIOptions,
+  UIButtonOptions,
+  Theming,
+  getUI,
+  getStylesFromTheming,
+  getScriptsFromTheming,
+  processComponentStyles,
+} from '../classes/ui-manager.js';
+import {
   COMMON_COLORS_TO_COMMON_GRADIENTS,
   VaryGroups,
 } from '../utils/varies.js';
-import {UIOptions, UIButtonOptions, getUIOptions} from '../utils/ui.js';
 import {
-  THEME_CHANGE_EVENT,
-  ThemingOptions,
-  ActiveTheme,
-  getTheme,
-} from '../utils/theme.js';
-import {UnstableStates} from '../utils/components.js';
+  UnstableStates,
+  RegisterComponentsList,
+  registerComponents,
+} from '../utils/components.js';
 import {EventForwarding, forwardEvents} from '../utils/events.js';
-import {adoptScripts} from '../utils/scripts.js';
-import {processComponentStyles} from '../utils/styles.js';
 
 export interface ExtendRootClassesInput {
   raw?: ClassInfo;
@@ -45,13 +51,18 @@ export class TiniElement extends LitElement {
   static readonly componentName: string = 'unnamed';
   static readonly defaultTagName: string = 'tini-element';
   static readonly componentMetadata: ComponentMetadata = {};
-  static readonly theming?: ThemingOptions<string>; // NOTE: only available by using the 'tini ui build' command (setted via the @TiniElementTheming() decorator)
 
-  private uiOptions = getUIOptions();
-  private activeTheme = getTheme();
-  private extraStyleAdopted = false;
+  static readonly theming?: Theming;
+  static readonly components?: RegisterComponentsList;
+
+  private ui = getUI();
+  private uiTracker = {
+    extraStylesAdopted: false,
+    pendingScriptsAdoption: this.getScripts(),
+  };
 
   protected rootClasses: ClassInfo = {root: true};
+  protected additionalParts: Record<string, TemplateResult> = {};
 
   /* eslint-disable prettier/prettier */
   @property({type: String, reflect: true}) declare styleDeep?: string;
@@ -69,12 +80,13 @@ export class TiniElement extends LitElement {
     return renderRoot;
   }
 
-  private onThemeChange = (e: Event) => {
-    this.activeTheme = (e as CustomEvent<ActiveTheme>).detail;
+  private onThemeChange = () => {
+    this.uiTracker.pendingScriptsAdoption = this.getScripts();
     return this.requestUpdate();
   };
 
   connectedCallback() {
+    this.registerComponents();
     super.connectedCallback();
     addEventListener(THEME_CHANGE_EVENT, this.onThemeChange);
   }
@@ -87,30 +99,37 @@ export class TiniElement extends LitElement {
   protected willUpdate(changedProperties: PropertyValues<this>) {
     // re-style when deepStyle changed
     if (changedProperties.has('styleDeep')) {
-      if (!this.extraStyleAdopted) {
-        this.extraStyleAdopted = true; // skip the first time, already adopted in createRenderRoot()
+      if (!this.uiTracker.extraStylesAdopted) {
+        this.uiTracker.extraStylesAdopted = true; // skip the first time, already adopted in createRenderRoot()
       } else {
         this.customAdoptStyles(this.shadowRoot || this);
       }
     }
+    // adopt scripts
+    const {prevScripts, currentScripts} = this.uiTracker.pendingScriptsAdoption;
+    prevScripts?.unscriptWillUpdate?.(this);
+    currentScripts?.willUpdate?.(this);
   }
 
-  protected firstUpdated() {
+  protected firstUpdated(changedProperties: PropertyValues<this>) {
     if (this.events) forwardEvents(this, this.events);
   }
 
-  protected updated() {
-    this.customAdoptScripts();
+  protected updated(changedProperties: PropertyValues<this>) {
+    // adopt scripts
+    const {prevScripts, currentScripts} = this.uiTracker.pendingScriptsAdoption;
+    prevScripts?.unscriptUpdated?.(this);
+    currentScripts?.updated?.(this);
   }
 
-  protected getGlobalOptions<
+  protected getUIOptions<
     ComponentSpecificOptions extends Record<string, unknown> = {},
     ExtendedOptions extends Record<string, unknown> = {},
   >() {
     const themeOptions = defu(
-      this.uiOptions?.[this.activeTheme.themeId],
-      this.uiOptions?.[this.activeTheme.soulId],
-      this.uiOptions?.['*'],
+      this.ui.options?.[this.ui.activeTheme.themeId],
+      this.ui.options?.[this.ui.activeTheme.familyId],
+      this.ui.options?.['*'],
       {}
     ) as UIOptions<ExtendedOptions>;
     const componentOptions = ((themeOptions as any)?.[
@@ -121,7 +140,7 @@ export class TiniElement extends LitElement {
 
   extendRootClasses(input: ExtendRootClassesInput) {
     const {raw = {}, pseudo = {}, overridable = {}} = input;
-    const {componentOptions} = this.getGlobalOptions<UIButtonOptions>();
+    const {componentOptions} = this.getUIOptions<UIButtonOptions>();
     // build pseudo info
     const pseudoInfo = Object.entries(pseudo).reduce(
       (result, [key, value]) => {
@@ -178,19 +197,24 @@ export class TiniElement extends LitElement {
     });
   }
 
+  private registerComponents() {
+    const components = (this.constructor as typeof TiniElement).components;
+    if (components) registerComponents(components);
+  }
+
   private calculatePropertyValue(name: string, originalValue: string) {
-    const {themeOptions} = this.getGlobalOptions();
+    const {themeOptions} = this.getUIOptions();
     // no theme
-    if (!this.activeTheme) return originalValue;
+    if (!this.ui.activeTheme) return originalValue;
     // refers
     const camelName = name.replace(/-(\w)/g, (_, letter) =>
       letter.toUpperCase()
     );
     const referValue =
-      this.refers?.[this.activeTheme.themeId]?.[camelName] ||
-      this.refers?.[this.activeTheme.themeId]?.[name] ||
-      this.refers?.[this.activeTheme.soulId]?.[camelName] ||
-      this.refers?.[this.activeTheme.soulId]?.[name];
+      this.refers?.[this.ui.activeTheme.themeId]?.[camelName] ||
+      this.refers?.[this.ui.activeTheme.themeId]?.[name] ||
+      this.refers?.[this.ui.activeTheme.familyId]?.[camelName] ||
+      this.refers?.[this.ui.activeTheme.familyId]?.[name];
     if (referValue) return referValue;
     // refer gradient scheme
     if (
@@ -211,34 +235,29 @@ export class TiniElement extends LitElement {
 
   private customAdoptStyles(renderRoot: HTMLElement | DocumentFragment) {
     const allStyles = [] as Array<string | CSSResultOrNative>;
-    // theme styles (multiple themes, via @TiniElementTheming() only)
-    const styling = (this.constructor as typeof TiniElement).theming?.styling;
-    if (styling) {
-      const {soulId, themeId} = this.activeTheme;
-      allStyles.push(
-        ...(styling[themeId] ||
-          styling[soulId] ||
-          Object.values(styling)[0] ||
-          [])
-      );
-    }
+    // theme styles
+    allStyles.push(
+      ...getStylesFromTheming(
+        (this.constructor as typeof TiniElement).theming,
+        this.ui.activeTheme
+      )
+    );
     // element styles
     allStyles.push(...(this.constructor as typeof LitElement).elementStyles);
     // from styleDeep
     if (this.styleDeep) allStyles.push(this.styleDeep);
-    // adopt styles
-    const styleText = processComponentStyles(allStyles, this.activeTheme);
+    // adopt all the styles
+    const styleText = processComponentStyles(allStyles, this.ui.activeTheme);
     adoptStyles(renderRoot as unknown as ShadowRoot, [
       getCompatibleStyle(unsafeCSS(styleText)),
     ]);
   }
 
-  private customAdoptScripts() {
-    // theme scripts (multiple themes, via @TiniElementTheming() only)
-    adoptScripts(
+  private getScripts() {
+    return getScriptsFromTheming(
       this,
-      this.activeTheme,
-      (this.constructor as typeof TiniElement).theming?.scripting
+      (this.constructor as typeof TiniElement).theming,
+      this.ui.activeTheme
     );
   }
 }

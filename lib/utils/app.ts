@@ -1,33 +1,15 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import {CSSResult} from 'lit';
-
-import {GLOBAL_TINI, TINI_APP_CONTEXT} from './consts/global.js';
-import {ThemingOptions} from './utils/theme.js';
+import {NO_APP_ERROR, SPLASHSCREEN_ID} from '../consts/common.js';
+import {GLOBAL_TINI} from '../consts/global.js';
 import {
-  SPLASHSCREEN_ID,
-  NO_APP_ERROR,
-  ComponentTypes,
-  LifecycleHooks,
-} from './consts.js';
-import {
+  ClientApp,
+  TiniComponent,
   DIRegistry,
   LHRegistry,
-  AppContext,
   GlobalLifecycleHook,
   SplashscreenComponent,
-} from './types.js';
-import {TiniComponent} from './main.js';
-
-export function asset(path: string) {
-  return path;
-}
-
-export function isClass(input: unknown) {
-  return (
-    typeof input === 'function' &&
-    /^class\s/.test(Function.prototype.toString.call(input))
-  );
-}
+  ComponentTypes,
+  LifecycleHooks,
+} from '../classes/tini-component.js';
 
 export function getDIRegistry() {
   return (GLOBAL_TINI.DIRegistry ||= {
@@ -37,30 +19,24 @@ export function getDIRegistry() {
   }) as DIRegistry;
 }
 
-export function getContext<
-  AppConfigs extends Record<string, unknown>,
-  ExtendedUIOptions extends Record<string, unknown>,
->() {
-  return TINI_APP_CONTEXT as AppContext<AppConfigs, ExtendedUIOptions>;
-}
-
-export function getApp<AppRoot extends TiniComponent>() {
-  if (!GLOBAL_TINI.app) throw NO_APP_ERROR;
-  return GLOBAL_TINI.app as AppRoot;
+export function getClientApp<AppRoot extends TiniComponent>() {
+  if (!GLOBAL_TINI.clientApp) throw NO_APP_ERROR;
+  return GLOBAL_TINI.clientApp as ClientApp<AppRoot>;
 }
 
 export function getOptions() {
-  return TINI_APP_CONTEXT.options || {};
+  return GLOBAL_TINI.clientApp?.options || {};
 }
 
 export function getConfigs<AppConfigs extends Record<string, unknown>>() {
-  return (TINI_APP_CONTEXT.configs || {}) as AppConfigs;
+  return (GLOBAL_TINI.clientApp?.configs || {}) as AppConfigs;
 }
 
 export function registerConfigs<AppConfigs extends Record<string, unknown>>(
   configs: AppConfigs
 ) {
-  return (TINI_APP_CONTEXT.configs = configs);
+  if (!GLOBAL_TINI.clientApp) throw NO_APP_ERROR;
+  return (GLOBAL_TINI.clientApp.configs = configs);
 }
 
 export function registerGlobalHook(
@@ -107,8 +83,7 @@ export function runGlobalHooks(
   );
   const data = {
     source: component,
-    app: getApp(),
-    appContext: getContext(),
+    clientApp: getClientApp(),
   };
   globalHooks?.forEach(action => action(data));
   return globalHooks;
@@ -126,30 +101,4 @@ export function hideSplashscreen() {
   } else {
     node.remove();
   }
-}
-
-export function stylingWithBases<ThemeId extends string>(
-  bases: Array<Record<ThemeId, CSSResult>>,
-  additionalStyling?: Record<ThemeId, CSSResult[]>
-) {
-  // bases
-  const styling = bases.reduce(
-    (result, item) => {
-      Object.keys(item).forEach(key => {
-        result[key] ||= [];
-        result[key].push(item[key as ThemeId]);
-      });
-      return result;
-    },
-    {} as Record<string, CSSResult[]>
-  );
-  // more
-  if (additionalStyling) {
-    Object.keys(additionalStyling).forEach(key => {
-      styling[key] ||= [];
-      styling[key].push(...additionalStyling[key as ThemeId]);
-    });
-  }
-  // result
-  return styling as NonNullable<ThemingOptions<ThemeId>['styling']>;
 }

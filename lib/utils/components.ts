@@ -1,3 +1,4 @@
+import {getUI} from '../classes/ui-manager.js';
 import {TiniElement} from '../classes/tini-element.js';
 
 export type RegisterComponentsList = Array<
@@ -33,6 +34,22 @@ export function ___checkForUnstableComponent(
   }
 }
 
+export function ___checkForMissingBases(
+  tagName: string,
+  {componentMetadata: {warnAboutMissingBases}}: typeof TiniElement
+) {
+  if (!warnAboutMissingBases) return;
+  const pickedBases = getUI().internalConfig?.basesMetadata?.pickedBases || [];
+  const missingBases = warnAboutMissingBases.filter(
+    item => !~pickedBases.indexOf(item)
+  );
+  console.warn(
+    `The component "${tagName}" is missing the following bases: ${missingBases.join(
+      ', '
+    )}.`
+  );
+}
+
 export function registerComponents(items: RegisterComponentsList) {
   return items.forEach(item => {
     const useCustomTagName = item instanceof Array;
@@ -46,6 +63,7 @@ export function registerComponents(items: RegisterComponentsList) {
     );
     if (process.env.NODE_ENV === 'development') {
       ___checkForUnstableComponent(tagName, constructor as typeof TiniElement);
+      ___checkForMissingBases(tagName, constructor as typeof TiniElement);
     }
   });
 }

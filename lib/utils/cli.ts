@@ -1,12 +1,12 @@
 import {SubCommandsDef} from 'citty';
 import {Promisable} from 'type-fest';
 
-import {TiniApp, ConfigIntegrationMeta} from '../classes/tini-app.js';
+import {TiniProject, TiniIntegrationMeta} from '../classes/tini-project.js';
 
 export interface CliExpansionConfig<
   Options extends Record<string, unknown> = {},
 > {
-  meta: ConfigIntegrationMeta;
-  setup: (options: Options, tini: TiniApp) => Promisable<SubCommandsDef>;
+  meta: TiniIntegrationMeta;
+  setup: (options: Options, tini: TiniProject) => Promisable<SubCommandsDef>;
   defaults?: Options;
 }
