@@ -1,5 +1,8 @@
 # TiniJS Core 
 
+> [!IMPORTANT]
+> This previously experiment is wrapped up, moving forward the development will happen at <https://github.com/tinijs/tinijs/tree/main/packages/core>.
+
 The core module of the TiniJS framework.
 
 It uses the [Lit](https://lit.dev/) library under the hood.
